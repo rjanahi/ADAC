@@ -23,7 +23,6 @@ export const documentService = {
         return await response.json();
     },
 
-
     //Upload a selected document to the backend
     async uploadDocument(file, title) {
 
@@ -182,4 +181,111 @@ export const documentService = {
         return data;
     },
 
+
+    
+
 };
+
+//Retrieve all versions of a document
+export async function getDocumentVersions(documentId) {
+    const response = await fetch(
+        `/api/Documents/${documentId}/versions`,
+        {
+            method: "GET",
+            credentials: "include",
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to retrieve document versions.");
+    }
+
+    return await response.json();
+}
+
+
+//Upload an updated version of an existing document
+export async function uploadDocumentVersion(documentId, file) {
+
+    //Get a valid CSRF token from our authentication service
+    const csrfToken = await getCsrfToken();
+
+    //Create the multipart form data
+    const formData = new FormData();
+
+    //The backend expects the uploaded file under "file"
+    formData.append("file", file);
+
+    //Send the updated document to the API
+    const response = await fetch(
+        `${API_URL}/${documentId}/versions`,
+        {
+            method: "POST",
+
+            //Include the authentication cookie
+            credentials: "include",
+
+            //Protect the request using the CSRF token
+            headers: {
+                "X-CSRF-TOKEN": csrfToken,
+            },
+
+            //Send the selected file
+            body: formData,
+        }
+    );
+
+    //Read the response
+    const data = await response.json().catch(() => null);
+
+    //Handle upload errors
+    if (!response.ok) {
+        throw new Error(
+            data?.message ||
+            `Document version upload failed (${response.status}).`
+        );
+    }
+
+    //Return the uploaded document information
+    return data;
+}
+
+
+//Compare two versions of a document using AI
+export async function compareDocumentVersions(
+    previousDocumentId,
+    currentDocumentId
+) {
+    //Get the CSRF token from our authentication service
+    const csrfToken = await getCsrfToken();
+
+    //Send both document IDs to the backend
+    const response = await fetch(`${API_URL}/compare`, {
+        method: "POST",
+        credentials: "include",
+
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": csrfToken,
+        },
+
+        body: JSON.stringify({
+            previousDocumentId,
+            currentDocumentId,
+        }),
+    });
+
+    //Read the API response
+    const data = await response.json().catch(() => null);
+
+    //Handle failed comparisons
+    if (!response.ok) {
+        throw new Error(
+            data?.message ||
+            `Document comparison failed (${response.status}).`
+        );
+    }
+
+    //Return the AI-generated comparison
+    return data;
+}

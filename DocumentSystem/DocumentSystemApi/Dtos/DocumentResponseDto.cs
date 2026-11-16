@@ -15,6 +15,10 @@
 
         public string Status { get; set; } = "";
 
+        public Guid? ParentDocumentId { get; set; }
+
+        public int DocumentVersion { get; set; }
+
         public string DocumentType { get; set; } = "";
 
         public DateTimeOffset UploadedAt { get; set; }

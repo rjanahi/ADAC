@@ -58,7 +58,7 @@ namespace DocumentSystemApi.Services
 
             //Find the analysis and verify document ownership
             var analysis = await _context.DocumentAnalyses
-                .AsNoTracking()
+                
                 .FirstOrDefaultAsync(a =>
                     a.Id == analysisId &&
                     _context.Documents.Any(r =>

@@ -1,6 +1,22 @@
 [
   {
     "ContainingType": "DocumentSystemApi.Controllers.AnalysisController",
+    "Method": "DownloadAnalysisPdf",
+    "RelativePath": "api/Analysis/{analysisId}/pdf",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "analysisId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.AnalysisController",
     "Method": "GetAnalysisHistory",
     "RelativePath": "api/Analysis/{documentId}",
     "HttpMethod": "GET",
@@ -126,6 +142,86 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "DocumentSystemApi.Controllers.ChatController",
+    "Method": "CreateConversation",
+    "RelativePath": "api/Chat/conversations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "DocumentSystemApi.Dtos.CreateConversationDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.ChatController",
+    "Method": "GetConversation",
+    "RelativePath": "api/Chat/conversations/{conversationId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "conversationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.ChatController",
+    "Method": "GetMessages",
+    "RelativePath": "api/Chat/conversations/{conversationId}/messages",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "conversationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.ChatController",
+    "Method": "GetDocumentConversations",
+    "RelativePath": "api/Chat/documents/{documentId}/conversations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "documentId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.ChatController",
+    "Method": "SendMessage",
+    "RelativePath": "api/Chat/messages",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "DocumentSystemApi.Dtos.ChatRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "DocumentSystemApi.Controllers.DocumentsController",
     "Method": "GetDocuments",
     "RelativePath": "api/Documents",
@@ -194,6 +290,84 @@
       {
         "Name": "id",
         "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.DocumentsController",
+    "Method": "UploadDocumentVersion",
+    "RelativePath": "api/Documents/{id}/versions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "ContentType",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "ContentDisposition",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Headers",
+        "Type": "Microsoft.AspNetCore.Http.IHeaderDictionary",
+        "IsRequired": false
+      },
+      {
+        "Name": "Length",
+        "Type": "System.Int64",
+        "IsRequired": false
+      },
+      {
+        "Name": "Name",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "FileName",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.DocumentsController",
+    "Method": "GetDocumentVersions",
+    "RelativePath": "api/Documents/{id}/versions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.DocumentsController",
+    "Method": "CompareDocuments",
+    "RelativePath": "api/Documents/compare",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "DocumentSystemApi.Dtos.DocumentComparisonRequestDto",
         "IsRequired": true
       }
     ],

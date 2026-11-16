@@ -6,12 +6,13 @@ using DocumentSystemApi.Data;
 using DocumentSystemApi.Services;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Collections.Concurrent;
 
 namespace DocumentSystemApi.Controllers
 {
     [ApiController]
     [Authorize]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] // /api/Analysis
     public class AnalysisController : ControllerBase
     {
         private readonly GeneralAnalysisService _analysisService;
@@ -19,14 +20,18 @@ namespace DocumentSystemApi.Controllers
         private readonly DocumentDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly QAAnalysisService _qaAnalysisService;
+        private readonly AnalysisPdfService _analysisPdfService;
+        //Coordinate analysis requests for each document
+        private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> AnalysisLocks = new();
 
         //Constructor: receive required services
         public AnalysisController(
-      GeneralAnalysisService analysisService,
-      QAAnalysisService qaAnalysisService,
-      AnalysisPersistenceService persistenceService,
-      DocumentDbContext context,
-      IConfiguration configuration)
+          GeneralAnalysisService analysisService,
+          QAAnalysisService qaAnalysisService,
+          AnalysisPersistenceService persistenceService,
+          DocumentDbContext context,
+          IConfiguration configuration,
+          AnalysisPdfService analysisPdfService)
         {
             //Service for analyzing general documents
             _analysisService = analysisService;
@@ -42,6 +47,9 @@ namespace DocumentSystemApi.Controllers
 
             //Application settings, including AI model name
             _configuration = configuration;
+
+            //
+            _analysisPdfService = analysisPdfService;
         }
 
 
@@ -61,9 +69,8 @@ namespace DocumentSystemApi.Controllers
         }
 
 
-        //POST /api/Analysis/{documentId}/general
         //Generate and save a general document analysis
-        [HttpPost("{documentId:guid}/general")]
+        [HttpPost("{documentId:guid}/general")] //POST /api/Analysis/{id}/general
         public async Task<IActionResult> GenerateGeneralAnalysis(
             Guid documentId)
         {
@@ -73,8 +80,36 @@ namespace DocumentSystemApi.Controllers
             if (userId == null)
                 return Unauthorized();
 
+            //Get the lock associated with this document
+            var analysisLock = AnalysisLocks.GetOrAdd(
+                documentId,
+                _ => new SemaphoreSlim(1, 1));
+
+            //Wait for another analysis of this document to finish
+            await analysisLock.WaitAsync();
+
+
             try
             {
+
+                //Check whether this document already has a General analysis
+                Guid? existingAnalysisId =
+                    await GetExistingAnalysisIdAsync(
+                        documentId,
+                        userId.Value,
+                        "General");
+
+                //Reuse the existing result instead of generating another
+                if (existingAnalysisId.HasValue)
+                {
+                    return Ok(new
+                    {
+                        analysisId = existingAnalysisId.Value,
+                        message = "This document already has a saved analysis.",
+                        reused = true
+                    });
+                }
+
                 //Generate the AI analysis
                 var result = await _analysisService.AnalyzeAsync(
                     documentId,
@@ -138,12 +173,17 @@ namespace DocumentSystemApi.Controllers
                     message = "AI returned an invalid analysis response."
                 });
             }
+            finally
+            {
+                //Allow the next request to check for a saved analysis
+                analysisLock.Release();
+            }
         }
 
 
-        //GET /api/Analysis/{documentId}
+       
         //Get the analysis history for a document
-        [HttpGet("{documentId:guid}")]
+        [HttpGet("{documentId:guid}")] //GET /api/Analysis/{id}
         public async Task<IActionResult> GetAnalysisHistory(
             Guid documentId)
         {
@@ -191,9 +231,9 @@ namespace DocumentSystemApi.Controllers
         }
 
 
-        //GET /api/Analysis/result/{analysisId}
+        
         //Get one analysis together with its findings
-        [HttpGet("result/{analysisId:guid}")]
+        [HttpGet("result/{analysisId:guid}")]//GET /api/Analysis/result/{id}
         public async Task<IActionResult> GetAnalysisResult(
             Guid analysisId)
         {
@@ -294,7 +334,7 @@ namespace DocumentSystemApi.Controllers
 
         //POST /api/Analysis/{documentId}/qa
         //Generate and save a specialized QA Document analysis
-        [HttpPost("{documentId:guid}/qa")]
+        [HttpPost("{documentId:guid}/qa")] //POST /api/Analysis/{id}/qa
         public async Task<IActionResult> GenerateQAAnalysis(
             Guid documentId)
         {
@@ -305,8 +345,36 @@ namespace DocumentSystemApi.Controllers
             if (userId == null)
                 return Unauthorized();
 
+            var analysisLock = AnalysisLocks.GetOrAdd(
+                documentId,
+                _ => new SemaphoreSlim(1, 1));
+
+            await analysisLock.WaitAsync();
+
             try
             {
+
+                //Check whether this document already has a QA analysis
+                Guid? existingAnalysisId =
+                    await GetExistingAnalysisIdAsync(
+                        documentId,
+                        userId.Value,
+                        "QA");
+
+                if (existingAnalysisId.HasValue)
+                {
+                    return Ok(new
+                    {
+                        analysisId = existingAnalysisId.Value,
+                        documentId,
+                        analysisType = "General",
+                        status = "Completed",
+                        message = "Existing analysis retrieved successfully.",
+                        reused = true
+                    });
+                }
+
+
                 //Generate the QA analysis using OpenAI
                 var result = await _qaAnalysisService.AnalyzeAsync(
                     documentId,
@@ -391,8 +459,87 @@ namespace DocumentSystemApi.Controllers
                     message = "AI returned an invalid response."
                 });
             }
+            finally
+            {
+                analysisLock.Release();
+            }
         }
 
+
+        //Download a PDF of a specific saved analysis version
+        [HttpGet("{analysisId:guid}/pdf")] //GET /api/Analysis/{id}/pdf
+        public async Task<IActionResult> DownloadAnalysisPdf(
+            Guid analysisId)
+        {
+            //Get the authenticated user's identity
+            string? userIdValue = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userIdValue, out Guid userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                //Generate the PDF for the selected analysis
+                byte[] pdfBytes =
+                    await _analysisPdfService.ExportAnalysisAsync(
+                        analysisId,
+                        userId);
+
+                //Return a downloadable PDF file
+                return File(
+                    pdfBytes,
+                    "application/pdf",
+                    $"Analysis_{analysisId:N}.pdf");
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid analysis identifier."
+                });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new
+                {
+                    message = "Analysis not found."
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+
+
+        //Find the primary completed analysis for a document version
+        private async Task<Guid?> GetExistingAnalysisIdAsync(
+            Guid documentId,
+            Guid userId,
+            string analysisType)
+        {
+            //Confirm ownership through the associated document
+            var existingAnalysis = await (
+                from analysis in _context.DocumentAnalyses.AsNoTracking()
+                join document in _context.Documents.AsNoTracking()
+                    on analysis.DocumentId equals document.Id
+                where document.Id == documentId
+                    && document.UserId == userId
+                    && !document.IsArchived
+                    && analysis.AnalysisType == analysisType
+                    && analysis.Status == "Completed"
+                orderby analysis.Version descending
+                select (Guid?)analysis.Id
+            ).FirstOrDefaultAsync();
+
+            return existingAnalysis;
+        }
 
     }
 }

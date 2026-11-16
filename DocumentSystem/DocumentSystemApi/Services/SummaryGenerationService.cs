@@ -49,7 +49,7 @@ namespace DocumentSystemApi.Services
 
             //Find the analysis and verify document ownership
             var analysis = await _context.DocumentAnalyses
-                .AsNoTracking()
+                
                 .Where(a =>
                     a.Id == analysisId &&
                     _context.Documents.Any(r =>
@@ -78,7 +78,7 @@ namespace DocumentSystemApi.Services
 
             //Retrieve individual findings for the analysis
             var findings = await _context.DocumentFindings
-                .AsNoTracking()
+                
                 .Where(f => f.AnalysisId == analysisId)
                 .OrderBy(f => f.CreatedAt)
                 .Select(f => new

@@ -1,35 +1,39 @@
 ﻿
+using DocumentSystemApi.Dtos;
+using DocumentSystemApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using DocumentSystemApi.Services;
 using System.Security.Claims;
 
 namespace DocumentSystemApi.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("api/[controller]")]
+[Route("api/[controller]")] // /api/Documents
 public class DocumentsController : ControllerBase
 {
     private readonly DocumentService _documentService;
-    
+
     //Service responsible for processing uploaded documents
     private readonly DocumentProcessingService _processingService;
 
     //Service responsible for AI document classification
-    private readonly DocumentClassificationService
-        _classificationService;
+    private readonly DocumentClassificationService _classificationService;
 
-    //Receive document services through dependency injection
+    //Service responsible for comparing document versions using AI
+    private readonly DocumentComparisonService _comparisonService;
+
     //Receive document services through dependency injection
     public DocumentsController(
         DocumentService documentService,
         DocumentProcessingService processingService,
-        DocumentClassificationService classificationService)
+        DocumentClassificationService classificationService,
+        DocumentComparisonService comparisonService)
     {
         _documentService = documentService;
         _processingService = processingService;
         _classificationService = classificationService;
+        _comparisonService = comparisonService;
     }
 
     [HttpPost("upload")] //POST /api/Documents/upload 
@@ -72,7 +76,69 @@ public class DocumentsController : ControllerBase
     }
 
 
-    
+    //Upload a new version of an existing document
+    [HttpPost("{id:guid}/versions")] //POST /api/Documents/{id}/versions
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(11 * 1024 * 1024)]
+    public async Task<IActionResult> UploadDocumentVersion(
+        Guid id,
+        [FromForm] IFormFile file)
+    {
+        //Get the authenticated user's ID
+        string? userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(userIdValue, out Guid userId))
+            return Unauthorized();
+
+        try
+        {
+            //Upload the revision using the existing service
+            var document =
+                await _documentService.UploadDocumentVersionAsync(
+                    id,
+                    file,
+                    userId);
+
+            //Return the new document's information
+            return StatusCode(201, new
+            {
+                message = "New document version uploaded successfully.",
+                documentId = document.Id,
+                parentDocumentId = document.ParentDocumentId,
+                documentVersion = document.DocumentVersion,
+                title = document.Title,
+                status = document.Status
+            });
+        }
+        catch (KeyNotFoundException)
+        {
+            //The requested document does not exist or isn't owned
+            return NotFound(new
+            {
+                message = "Document not found."
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            //Invalid file, size, extension, or content
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            //A database constraint may have rejected the upload
+            //This can happen with simultaneous version uploads
+            return Conflict(new
+            {
+                message = "The document version could not be saved. " +
+                          "Please retry the upload."
+            });
+        }
+    }
+
     //Return all active documents belonging to the logged-in user
     [HttpGet] //GET /api/Documents
     public async Task<IActionResult> GetDocuments()
@@ -92,8 +158,6 @@ public class DocumentsController : ControllerBase
         return Ok(documents);
     }
 
-
-    
     //Return information about a specific document
     [HttpGet("{id:guid}")] //GET /api/Documents/{id}
     public async Task<IActionResult> GetDocument(Guid id)
@@ -119,7 +183,122 @@ public class DocumentsController : ControllerBase
 
         return Ok(document);
     }
-    
+
+    //Retrieve all versions of a document
+    [HttpGet("{id:guid}/versions")] //GET /api/Documents/{id}/versions
+    public async Task<IActionResult> GetDocumentVersions(
+        Guid id)
+    {
+        //Get the authenticated user's ID
+        string? userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(userIdValue, out Guid userId))
+            return Unauthorized();
+
+        try
+        {
+            //Retrieve all versions belonging to this document
+            var versions =
+                await _documentService.GetDocumentVersionsAsync(
+                    id,
+                    userId);
+
+            //Return newest version first
+            return Ok(versions);
+        }
+        catch (KeyNotFoundException)
+        {
+            //Document doesn't exist or doesn't belong to user
+            return NotFound(new
+            {
+                message = "Document not found."
+            });
+        }
+    }
+
+
+    //Compare two uploaded document versions using AI
+    [HttpPost("compare")] //GET /api/Documents/compare
+    public async Task<IActionResult> CompareDocuments(
+        [FromBody] DocumentComparisonRequestDto request)
+    {
+        //Get the authenticated user's ID
+        string? userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        //Reject requests without a valid authenticated user
+        if (!Guid.TryParse(userIdValue, out Guid userId))
+            return Unauthorized();
+
+        //Check that both document IDs are provided and different
+        if (
+            request.PreviousDocumentId == Guid.Empty ||
+            request.CurrentDocumentId == Guid.Empty ||
+            request.PreviousDocumentId == request.CurrentDocumentId
+        )
+        {
+            return BadRequest(new
+            {
+                message = "Select two different valid document versions."
+            });
+        }
+
+        try
+        {
+            //Compare both documents using the OpenAI service
+            DocumentComparisonResultDto result =
+                await _comparisonService.CompareAsync(
+                    request.PreviousDocumentId,
+                    request.CurrentDocumentId,
+                    userId
+                );
+
+            //Return the AI-generated comparison
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            //Invalid comparison request
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+        catch (KeyNotFoundException)
+        {
+            //One or both documents don't exist or aren't owned
+            return NotFound(new
+            {
+                message = "One or both documents were not found."
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            //Documents aren't ready, are unrelated, or can't be compared
+            return Conflict(new
+            {
+                message = ex.Message
+            });
+        }
+        catch (HttpRequestException)
+        {
+            //The external AI service failed
+            return StatusCode(502, new
+            {
+                message = "The AI comparison service is unavailable."
+            });
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            //The external AI response could not be parsed
+            return StatusCode(502, new
+            {
+                message = "The AI comparison returned an invalid response."
+            });
+        }
+    }
+
     //Soft delete a document by marking it as archived
     [HttpDelete("{id:guid}")] //DELETE /api/Documents/{id}
     public async Task<IActionResult> DeleteDocument(Guid id)
@@ -149,8 +328,6 @@ public class DocumentsController : ControllerBase
         });
     }
 
-
-    
     //Extract text from a document and save chunks
     [HttpPost("{id:guid}/process")] //POST /api/Documents/{id}/process
     public async Task<IActionResult> ProcessDocument(Guid id)
@@ -204,8 +381,6 @@ public class DocumentsController : ControllerBase
         }
     }
 
-
-    
     //Classify an extracted document as General or QA
     [HttpPost("{id:guid}/classify")] //POST /api/Documents/{id}/classify
     public async Task<IActionResult> ClassifyDocument(Guid id)

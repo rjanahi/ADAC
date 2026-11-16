@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DocumentSystemApi.Models;
+﻿namespace DocumentSystemApi.Models;
 
 public partial class Document
 {
@@ -22,6 +19,10 @@ public partial class Document
     public long FileSizeBytes { get; set; }
 
     public string Status { get; set; } = null!;
+
+    public Guid? ParentDocumentId { get; set; }
+
+    public int DocumentVersion { get; set; }
 
     public DateTimeOffset UploadedAt { get; set; }
 

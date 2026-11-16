@@ -37,7 +37,7 @@ namespace DocumentSystemApi.Services
         {
             //Find the document and check ownership
             var Document = await _context.Documents
-                .AsNoTracking()
+                
                 .FirstOrDefaultAsync(r =>
                     r.Id == documentId &&
                     r.UserId == userId &&
@@ -60,7 +60,7 @@ namespace DocumentSystemApi.Services
 
             //Retrieve chunks in their original order
             var chunks = await _context.DocumentChunks
-                .AsNoTracking()
+                
                 .Where(c => c.DocumentId == documentId)
                 .OrderBy(c => c.ChunkIndex)
                 .ToListAsync();

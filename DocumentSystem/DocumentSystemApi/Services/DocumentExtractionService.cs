@@ -99,9 +99,9 @@ namespace DocumentSystemApi.Services
         }
 
 
-        //Extract text from a Microsoft Word document
-        private ExtractionResult ExtractDocx(
-            string filePath)
+
+        //Extract readable text from a Microsoft Word document
+        private ExtractionResult ExtractDocx(string filePath)
         {
             //Open the Word document in read-only mode
             using var document =
@@ -112,43 +112,55 @@ namespace DocumentSystemApi.Services
                 .Document?
                 .Body;
 
-            //Reject Word documents without a readable body
+            //Reject documents without a readable body
             if (body == null)
                 throw new InvalidDataException(
                     "The Word document has no readable body.");
 
+            //Build the extracted document text
             var textBuilder = new StringBuilder();
 
-            //Read paragraphs from the document body
-            foreach (var paragraph in
-                body.Descendants<Paragraph>())
+            //Read paragraphs, including paragraphs inside tables
+            foreach (var paragraph in body.Descendants<Paragraph>())
             {
-                //Get the text inside the paragraph
-                string paragraphText = paragraph.InnerText;
+                //Extract actual Word text elements only
+                //This excludes field instructions such as PAGEREF
+                var textParts = paragraph
+                    .Descendants<Text>()
+                    .Select(t => t.Text);
+
+                //Combine the text elements into one paragraph
+                string paragraphText = string.Concat(textParts);
 
                 //Skip empty paragraphs
                 if (string.IsNullOrWhiteSpace(paragraphText))
                     continue;
 
-                //Preserve paragraph separation
-                textBuilder.AppendLine(paragraphText);
+                //Preserve paragraph boundaries
+                textBuilder.AppendLine(paragraphText.Trim());
             }
 
-            string text = textBuilder.ToString();
+            //Get the final extracted text
+            string text = textBuilder.ToString().Trim();
 
-            //Word page numbers are not reliably available
+            //Reject documents with no extractable text
+            if (string.IsNullOrWhiteSpace(text))
+                throw new InvalidDataException(
+                    "The Word document contains no extractable text.");
+
+            //DOCX does not provide reliable page positions
             return new ExtractionResult
             {
                 FullText = text,
 
                 Sections = new List<ExtractedSection>
+            {
+                new ExtractedSection
                 {
-                    new ExtractedSection
-                    {
-                        PageNumber = null,
-                        Text = text
-                    }
+                    PageNumber = null,
+                    Text = text
                 }
+            }
             };
         }
     }

@@ -1,4 +1,3 @@
-
 import { getCsrfToken } from "./authService";
 
 //Base URL for the C# AnalysisController
@@ -117,4 +116,65 @@ export const analysisService = {
 
         return await response.json();
     },
+
+
+    //Download a PDF of a saved analysis version
+    async downloadAnalysisPdf(analysisId) {
+
+        if (!analysisId) {
+            throw new Error("No analysis selected.");
+         }
+
+        //Request the PDF using the existing login session
+        const response = await fetch(
+            `${API_URL}/${encodeURIComponent(analysisId)}/pdf`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+
+            throw new Error(
+                errorData?.message ||
+                `PDF download failed (${response.status}).`
+            );
+        }
+
+        //Convert the response into a downloadable file
+        const pdfBlob = await response.blob();
+
+        //Ensure the server returned a PDF
+        if (!response.headers
+            .get("Content-Type")
+            ?.toLowerCase()
+            .includes("application/pdf")) {
+            throw new Error("The server did not return a PDF.");
+        }
+
+        //Create a temporary browser URL
+        const url = window.URL.createObjectURL(pdfBlob);
+
+        try {
+            //Create a temporary download link
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = `Analysis_${analysisId}.pdf`;
+
+            document.body.appendChild(link);
+
+            //Start the download
+            link.click();
+
+            //Remove the temporary link
+            link.remove();
+        } finally {
+            //Release the temporary object URL
+            window.URL.revokeObjectURL(url);
+        }
+    },
+
 };

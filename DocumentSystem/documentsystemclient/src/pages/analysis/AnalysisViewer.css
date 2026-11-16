@@ -1,9 +1,44 @@
 
 /* Main analysis page */
+/* Give Analysis and Chat enough horizontal space */
 .analysis-page {
-    max-width: 1100px;
+    max-width: 1700px;
+    width: 100%;
     margin: 0 auto;
-    padding: 32px 24px;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+/* Divide available space between the panels */
+/* Two-column document workspace */
+.analysis-chat-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 24px;
+    align-items: start;
+}
+
+/* Allow both panels to shrink correctly */
+.analysis-panel,
+.analysis-chat-panel {
+    min-width: 0;
+}
+
+/* Keep chat visible when scrolling the analysis */
+.analysis-chat-panel {
+    position: sticky;
+    top: 20px;
+}
+
+/* Stack on tablet and mobile */
+@media (max-width: 1050px) {
+    .analysis-chat-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-chat-panel {
+        position: static;
+    }
 }
 
 /* Page header */
@@ -220,4 +255,617 @@
     .qa-stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+/* Main layout containing analysis and chat */
+.analysis-chat-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+/* Left analysis panel */
+.analysis-panel {
+    min-width: 0;
+}
+
+/* Right chat panel */
+.analysis-chat-panel {
+    min-width: 0;
+    position: sticky;
+    top: 20px;
+}
+
+/* Stack panels on smaller screens */
+@media (max-width: 1000px) {
+    .analysis-chat-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-chat-panel {
+        position: static;
+    }
+}
+
+/* Individual uploaded document version */
+.document-version-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 10px;
+}
+
+    /* Prevent long filenames from breaking the layout */
+    .document-version-item > div {
+        min-width: 0;
+    }
+
+    .document-version-item p {
+        margin: 5px 0 0;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+        color: var(--text-secondary, #64748b);
+    }
+
+/* Stack version information on smaller screens */
+@media (max-width: 600px) {
+    .document-version-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+
+/* Container for uploading an updated document */
+.document-version-upload {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+/* Heading and description */
+.document-version-upload-header h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.document-version-upload-header p {
+    margin: 0 0 18px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Label above the file input */
+.document-version-file-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Native file picker */
+.document-version-upload input[type="file"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    font-size: 13px;
+}
+
+/* Selected file information */
+.document-version-selected {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #eaf1ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+/* Upload action */
+.document-version-upload-button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 11px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .document-version-upload-button:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+    }
+
+/* Supported formats message */
+.document-version-upload-note {
+    margin: 10px 0 0;
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* Process and classify buttons for document versions */
+.document-version-process-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 9px 14px;
+    border: 1px solid #2563eb;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+    .document-version-process-button:hover:not(:disabled) {
+        background: #eff6ff;
+    }
+
+    .document-version-process-button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+/* Switch between uploaded document versions */
+.document-version-select-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 9px 14px;
+    border: 1px solid #2563eb;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+    .document-version-select-button:hover:not(:disabled) {
+        background: #1d4ed8;
+    }
+
+    .document-version-select-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+/* Select the two document versions to compare */
+.comparison-selectors {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+
+    .comparison-selectors label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .comparison-selectors select {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: #ffffff;
+        font-size: 13px;
+    }
+
+/* Comparison results */
+.comparison-results {
+    margin-top: 24px;
+}
+
+    .comparison-results h3 {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+
+/* Allow horizontal scrolling on narrow screens */
+.comparison-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+    .comparison-table th,
+    .comparison-table td {
+        padding: 13px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .comparison-table th {
+        background: #f8fafc;
+        font-weight: 600;
+    }
+
+@media (max-width: 600px) {
+    .comparison-selectors {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Overall AI comparison summary */
+.comparison-summary {
+    padding: 18px;
+    margin-bottom: 24px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+    .comparison-summary h4 {
+        margin: 0 0 10px;
+        font-size: 15px;
+    }
+
+    .comparison-summary p {
+        margin: 0;
+        line-height: 1.7;
+        white-space: pre-wrap;
+    }
+
+/* Group changes by category */
+.comparison-change-section {
+    margin-top: 24px;
+}
+
+    .comparison-change-section h4 {
+        margin: 0 0 14px;
+        font-size: 16px;
+    }
+
+
+
+.comparison-disclaimer {
+    margin-top: 20px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* Comparison statistics */
+.comparison-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.comparison-stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .comparison-stat-card:hover {
+        background: #f1f5f9;
+        transform: translateY(-2px);
+    }
+
+    .comparison-stat-card.active {
+        border-color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .comparison-stat-card:focus-visible,
+    .comparison-filters button:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 3px;
+    }
+
+.comparison-stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.comparison-stat-label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* Comparison filters */
+.comparison-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+    .comparison-filters button {
+        padding: 9px 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        color: #475569;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+        .comparison-filters button:hover {
+            background: #f8fafc;
+        }
+
+        .comparison-filters button.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+
+@media (max-width: 600px) {
+    .comparison-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .comparison-stat-card {
+        transition: none;
+    }
+
+        .comparison-stat-card:hover {
+            transform: none;
+        }
+}
+
+/* Individual finding cards */
+.comparison-change-card {
+    padding: 20px;
+    margin-bottom: 12px;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #cbd5e1;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+    /* Category border colors */
+    .comparison-change-card.comparison-added {
+        border-left-color: #16a34a;
+    }
+
+    .comparison-change-card.comparison-removed {
+        border-left-color: #dc2626;
+    }
+
+    .comparison-change-card.comparison-modified {
+        border-left-color: #2563eb;
+    }
+
+    .comparison-change-card.comparison-unchanged {
+        border-left-color: #94a3b8;
+    }
+
+/* Finding heading */
+.comparison-change-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+    .comparison-change-header h5 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.5;
+        color: #0f172a;
+    }
+
+/* Category badges */
+.comparison-change-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.comparison-badge-added {
+    color: #15803d;
+    background: #dcfce7;
+}
+
+.comparison-badge-removed {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.comparison-badge-modified {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.comparison-badge-unchanged {
+    color: #475569;
+    background: #f1f5f9;
+}
+
+/* Finding explanation */
+.comparison-change-description {
+    margin: 0;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+}
+
+/* Expandable evidence button */
+.comparison-evidence-toggle {
+    margin-top: 14px;
+    padding: 9px 12px;
+    border: 1px solid #dbe3ee;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .comparison-evidence-toggle:hover {
+        background: #eff6ff;
+    }
+
+    .comparison-evidence-toggle:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+    }
+
+/* Previous and updated source excerpts */
+.comparison-excerpts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+    .comparison-excerpts > div {
+        min-width: 0;
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+.comparison-excerpt-previous {
+    background: #fff7f7;
+    border: 1px solid #fecaca;
+}
+
+.comparison-excerpt-current {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+.comparison-excerpts strong {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.comparison-excerpts p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.comparison-excerpts small {
+    display: block;
+    margin-top: 10px;
+    color: #64748b;
+}
+
+@media (max-width: 600px) {
+    .comparison-change-header {
+        flex-wrap: wrap;
+    }
+
+    .comparison-excerpts {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* PDF export controls */
+.analysis-pdf-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    margin: 16px 0 24px;
+}
+
+.analysis-download-pdf-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+    .analysis-download-pdf-button:hover:not(:disabled) {
+        background: #1d4ed8;
+    }
+
+    .analysis-download-pdf-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .analysis-download-pdf-button:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 3px;
+    }
+
+.analysis-pdf-error {
+    margin: 0;
+    font-size: 12px;
+    color: #dc2626;
+}
+
+@media (max-width: 600px) {
+    .analysis-pdf-actions {
+        align-items: stretch;
+    }
+}
+
+.analysis-saved-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 600;
 }

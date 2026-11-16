@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using DocumentSystemApi.Models;
+﻿using DocumentSystemApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DocumentSystemApi.Data;
@@ -71,6 +69,14 @@ public partial class DocumentDbContext : DbContext
         modelBuilder.Entity<Document>(entity =>
         {
             entity.HasIndex(e => e.UserId, "IX_Documents_UserId");
+            entity.HasIndex(e => new
+            {
+                e.ParentDocumentId,
+                e.DocumentVersion
+            })
+                .IsUnique()
+                .HasFilter("[ParentDocumentId] IS NOT NULL")
+                .HasDatabaseName("UQ_Documents_Parent_Version");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())", "DF_Documents_Id");
             entity.Property(e => e.ContentType).HasMaxLength(100);
@@ -85,6 +91,23 @@ public partial class DocumentDbContext : DbContext
             entity.Property(e => e.StoredFileName).HasMaxLength(255);
             entity.Property(e => e.Title).HasMaxLength(200);
             entity.Property(e => e.UploadedAt).HasDefaultValueSql("(sysdatetimeoffset())", "DF_Documents_UploadedAt");
+
+
+            entity.Property(e => e.ParentDocumentId)
+                .HasColumnName("ParentDocumentId");
+
+            entity.Property(e => e.DocumentVersion)
+                .HasDefaultValue(1);
+
+            entity.HasOne<Document>()
+                .WithMany()
+                .HasForeignKey(e => e.ParentDocumentId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_Documents_ParentDocument");
+
+
+
+
         });
 
         modelBuilder.Entity<DocumentAnalysis>(entity =>

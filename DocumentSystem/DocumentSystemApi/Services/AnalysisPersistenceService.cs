@@ -153,7 +153,7 @@ namespace DocumentSystemApi.Services
 
             //Find the document and verify its owner
             var Document = await _context.Documents
-                .AsNoTracking()
+                
                 .FirstOrDefaultAsync(r =>
                     r.Id == documentId &&
                     r.UserId == userId &&

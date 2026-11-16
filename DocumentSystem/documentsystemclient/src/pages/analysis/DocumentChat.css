@@ -1,0 +1,363 @@
+/* Document chat: embedded next to AnalysisViewer */
+.document-chat-page {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    color: #1e293b;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+/* Heading above the chat workspace */
+.embedded-chat-header {
+    margin: 0 0 16px;
+    text-align: center;
+}
+
+    .embedded-chat-header h2 {
+        margin: 0 0 6px;
+        font-size: 18px;
+    }
+
+    .embedded-chat-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+/* Optional header elements if the standalone markup is retained */
+.chat-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+    .chat-page-header h1 {
+        margin: 8px 0 4px;
+        font-size: 24px;
+    }
+
+    .chat-page-header p {
+        margin: 0;
+        color: #64748b;
+    }
+
+.document-chat-page .chat-back-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2563eb;
+    cursor: pointer;
+}
+
+.chat-document-status {
+    padding: 7px 12px;
+    border-radius: 20px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* One-column chat: conversations at top, messages below */
+.document-chat-page .chat-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    height: min(74vh, 760px);
+    min-height: 480px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+/* Horizontal conversations header */
+.document-chat-page .chat-sidebar {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-height: 150px;
+    overflow: hidden;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.document-chat-page .chat-sidebar-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+    .document-chat-page .chat-sidebar-heading h2 {
+        margin: 0;
+        font-size: 15px;
+    }
+
+    .document-chat-page .chat-sidebar-heading button {
+        flex-shrink: 0;
+        padding: 9px 12px;
+        border: 0;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+/* Scroll horizontally when there are many conversations */
+.document-chat-page .chat-conversation-list {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+}
+
+.document-chat-page .chat-conversation {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 180px;
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: #e9eef5;
+    color: #334155;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+    .document-chat-page .chat-conversation.active {
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-weight: 600;
+    }
+
+/* The message area grows to fill the remaining height */
+.document-chat-page .chat-main {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.document-chat-page .chat-messages {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    text-align: left;
+}
+
+/* Allow replies and excerpts to use the full chat width */
+.document-chat-page .chat-message {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    width: fit-content;
+    max-width: 92%;
+    min-width: 0;
+    padding: 14px 16px;
+    border-radius: 13px;
+    background: #f1f5f9;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-align: left;
+}
+
+    .document-chat-page .chat-message.assistant {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .document-chat-page .chat-message.user {
+        align-self: flex-end;
+        background: #2563eb;
+        color: #ffffff;
+    }
+
+.chat-message-role {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.85;
+}
+
+.chat-message-content {
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-align: left;
+}
+
+/* Expandable evidence from the uploaded document */
+.chat-sources {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #cbd5e1;
+    text-align: left;
+}
+
+    .chat-sources strong {
+        font-size: 12px;
+    }
+
+.chat-source {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #334155;
+    text-align: left;
+}
+
+    .chat-source summary {
+        cursor: pointer;
+        color: #2563eb;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .chat-source p {
+        margin: 10px 0 0;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        word-break: normal;
+        text-align: left;
+    }
+
+/* Empty conversation and response states */
+.chat-empty {
+    max-width: 380px;
+    margin: auto;
+    text-align: center;
+}
+
+    .chat-empty h2 {
+        margin: 0 0 10px;
+        font-size: 20px;
+    }
+
+    .chat-empty p {
+        margin: 0;
+        color: #64748b;
+        line-height: 1.7;
+    }
+
+.chat-typing {
+    color: #64748b;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.chat-error {
+    padding: 12px 16px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+/* Input stays at the bottom, outside the scrolling messages */
+.document-chat-page .chat-input-form {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-end;
+    gap: 10px;
+    min-width: 0;
+    padding: 14px 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+    .document-chat-page .chat-input-form textarea {
+        box-sizing: border-box;
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        padding: 11px 12px;
+        resize: none;
+        border: 1px solid #cbd5e1;
+        border-radius: 9px;
+        font: inherit;
+        font-size: 14px;
+        line-height: 1.5;
+        text-align: left;
+    }
+
+    .document-chat-page .chat-input-form button {
+        flex: 0 0 auto;
+        padding: 12px 15px;
+        border: 0;
+        border-radius: 9px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+    }
+
+.document-chat-page button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.chat-disclaimer {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0 16px 12px;
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+/* Adapt spacing to smaller viewports */
+@media (max-width: 700px) {
+    .document-chat-page .chat-layout {
+        height: 70vh;
+        min-height: 450px;
+    }
+
+    .document-chat-page .chat-sidebar {
+        padding: 10px 12px;
+    }
+
+    .document-chat-page .chat-messages {
+        padding: 14px;
+    }
+
+    .document-chat-page .chat-input-form {
+        padding: 12px;
+    }
+
+    .document-chat-page .chat-message {
+        max-width: 96%;
+    }
+}

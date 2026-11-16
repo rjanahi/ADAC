@@ -22,7 +22,7 @@ namespace DocumentSystemApi.Dtos
         //Actual AI-generated summary text
         public string Content { get; set; } = "";
 
-        //Pending, Processing, Completed or Failed
+        //Pending, Generating, Completed or Failed
         public string Status { get; set; } = "";
 
         //Date when summary generation started

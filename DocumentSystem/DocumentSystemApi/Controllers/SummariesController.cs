@@ -158,7 +158,7 @@ namespace DocumentSystemApi.Controllers
 
             //Check ownership through Analysis -> Document -> User
             bool analysisExists = await _context.DocumentAnalyses
-                .AsNoTracking()
+                
                 .AnyAsync(a =>
                     a.Id == analysisId &&
                     _context.Documents.Any(r =>
@@ -177,7 +177,7 @@ namespace DocumentSystemApi.Controllers
 
             //Retrieve summaries belonging to this analysis
             var summaries = await _context.GeneratedSummaries
-                .AsNoTracking()
+                
                 .Where(s => s.AnalysisId == analysisId)
 
                 //Show the newest summaries first
@@ -216,7 +216,7 @@ namespace DocumentSystemApi.Controllers
             //Find the summary and verify ownership through
             //its parent analysis and document
             var summary = await _context.GeneratedSummaries
-                .AsNoTracking()
+                
                 .Where(s =>
                     s.Id == summaryId &&
                     _context.DocumentAnalyses.Any(a =>

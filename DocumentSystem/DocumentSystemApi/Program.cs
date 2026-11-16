@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DocumentSystemApi.Data;
-using DocumentSystemApi.Models;
-using DocumentSystemApi.Services;
+using QAReportSystemApi.Services;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,6 +87,29 @@ builder.Services.AddScoped<SummaryPersistenceService>();
 //Save analyses and findings into SQL Server
 builder.Services.AddScoped<AnalysisPersistenceService>();
 
+//Document conversations service
+builder.Services.AddScoped<ChatConversationService>();
+
+//Document keyword retrieval service
+builder.Services.AddScoped<DocumentRetrievalService>();
+
+//Register the AI document chat service
+builder.Services.AddHttpClient<DocumentChatService>(
+    client =>
+    {
+        //Set a maximum duration for the AI request
+        client.Timeout = TimeSpan.FromSeconds(120);
+    });
+
+//Saves and retrieves chat messages service
+builder.Services.AddScoped<ChatMessageService>();
+
+//AI document comparisons service
+builder.Services.AddHttpClient<DocumentComparisonService>();
+
+//Generate PDF reports from saved analyses
+builder.Services.AddScoped<AnalysisPdfService>();
+
 //Configure cookie authentication
 builder.Services
     .AddAuthentication(
@@ -127,6 +149,9 @@ builder.Services
 
 //Enable authorization services
 builder.Services.AddAuthorization();
+
+//Configure QuestPDF for PDF generation
+QuestPDF.Settings.License = LicenseType.Community;
 
 //Build the application
 var app = builder.Build();

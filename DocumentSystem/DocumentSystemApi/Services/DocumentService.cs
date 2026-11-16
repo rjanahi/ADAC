@@ -1,11 +1,9 @@
-﻿
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using DocumentSystemApi.Data;
+﻿using DocumentSystemApi.Data;
+using DocumentSystemApi.Dtos;
 using DocumentSystemApi.Models;
+using Microsoft.EntityFrameworkCore;
 using System.IO.Compression;
 using System.Text;
-using DocumentSystemApi.Dtos;
 
 namespace DocumentSystemApi.Services;
 
@@ -37,6 +35,25 @@ public class DocumentService
         string title,
         Guid userId)
     {
+        //Original documents start at version 1
+        return await SaveUploadedDocumentAsync(
+            file,
+            title,
+            userId,
+            parentDocumentId: null,
+            documentVersion: 1);
+    }
+
+
+    //Shared upload logic for original documents and revisions
+    private async Task<Document> SaveUploadedDocumentAsync(
+        IFormFile file,
+        string title,
+        Guid userId,
+        Guid? parentDocumentId,
+        int documentVersion)
+    {
+
         //No file
         if (file == null || file.Length == 0)
             throw new ArgumentException("File is required.");
@@ -86,32 +103,36 @@ public class DocumentService
             //Validate file content
             ValidateFileContent(path, extension);
 
-            // Find possible duplicates for THIS user only.
-            var candidates = await _context.Documents
-                .Where(r =>
-                    r.UserId == userId &&
-                    !r.IsArchived &&
-                    r.FileSizeBytes == file.Length)
-                .Select(r => r.FilePath)
+            //Only reject duplicates for normal document uploads
+            if (parentDocumentId == null)
+            {
+                // Find possible duplicates for THIS user only.
+                var candidates = await _context.Documents
+                .Where(d =>
+                    d.UserId == userId &&
+                    !d.IsArchived &&
+                    d.FileSizeBytes == file.Length)
+                .Select(d => d.FilePath)
                 .ToListAsync();
 
-            //Gether all the bytes inside the file
-            byte[] uploadedBytes =
-                await File.ReadAllBytesAsync(path);
+                //Gether all the bytes inside the file
+                byte[] uploadedBytes =
+                    await File.ReadAllBytesAsync(path);
 
-            foreach (string existingPath in candidates)
-            {
-                if (!File.Exists(existingPath))
-                    continue;
-
-                byte[] existingBytes =
-                    await File.ReadAllBytesAsync(existingPath);
-
-                if (uploadedBytes.AsSpan()
-                    .SequenceEqual(existingBytes))
+                foreach (string existingPath in candidates)
                 {
-                    throw new InvalidOperationException(
-                        "This document has already been uploaded.");
+                    if (!File.Exists(existingPath))
+                        continue;
+
+                    byte[] existingBytes =
+                        await File.ReadAllBytesAsync(existingPath);
+
+                    if (uploadedBytes.AsSpan()
+                        .SequenceEqual(existingBytes))
+                    {
+                        throw new InvalidOperationException(
+                            "This document has already been uploaded.");
+                    }
                 }
             }
 
@@ -131,6 +152,8 @@ public class DocumentService
                 },
                 FileSizeBytes = file.Length,
                 Status = "Uploaded",
+                ParentDocumentId = parentDocumentId,
+                DocumentVersion = documentVersion,
                 DocumentType = "Unknown",
                 UploadedAt = DateTimeOffset.UtcNow,
                 IsArchived = false
@@ -149,6 +172,132 @@ public class DocumentService
 
             throw;
         }
+    }
+
+    //Upload a new version of an existing document
+    public async Task<Document> UploadDocumentVersionAsync(
+        Guid documentId,
+        IFormFile file,
+        Guid userId)
+    {
+        //Find the original document and verify ownership
+        Document originalDocument =
+            await GetOriginalDocumentAsync(
+                documentId,
+                userId);
+
+        //Calculate the next document version
+        int nextVersion =
+            await GetNextDocumentVersionAsync(
+                originalDocument.Id);
+
+        Document newDocument =
+            await SaveUploadedDocumentAsync(
+                file,
+                originalDocument.Title,
+                userId,
+                parentDocumentId: originalDocument.Id,
+                documentVersion: nextVersion);
+
+        //Return the newly created document
+        return newDocument;
+    }
+
+
+    //Retrieve every active version of a document
+    public async Task<List<DocumentResponseDto>> GetDocumentVersionsAsync(
+        Guid documentId,
+        Guid userId)
+    {
+        //Find the original document and verify ownership
+        Document originalDocument =
+            await GetOriginalDocumentAsync(documentId, userId);
+
+        //Get the original document and all its revisions
+        var versions = await _context.Documents
+            .Where(d =>
+                d.UserId == userId &&
+                !d.IsArchived &&
+                (
+                    d.Id == originalDocument.Id ||
+                    d.ParentDocumentId == originalDocument.Id
+                ))
+
+            //Display the newest version first
+            .OrderByDescending(d => d.DocumentVersion)
+
+            //Return only the information required by the frontend
+            .Select(d => new DocumentResponseDto
+            {
+                Id = d.Id,
+                Title = d.Title,
+                OriginalFileName = d.OriginalFileName,
+                ContentType = d.ContentType,
+                FileSizeBytes = d.FileSizeBytes,
+                Status = d.Status,
+                DocumentType = d.DocumentType,
+                UploadedAt = d.UploadedAt,
+
+                //Version information
+                ParentDocumentId = d.ParentDocumentId,
+                DocumentVersion = d.DocumentVersion
+            })
+            .ToListAsync();
+
+        return versions;
+    }
+
+
+    //Find the original document for any uploaded version
+    private async Task<Document> GetOriginalDocumentAsync(
+        Guid documentId,
+        Guid userId)
+    {
+        //Find the requested document and verify its owner
+        var document = await _context.Documents
+            .FirstOrDefaultAsync(d =>
+                d.Id == documentId &&
+                d.UserId == userId &&
+                !d.IsArchived);
+
+        //Reject documents that don't exist or belong to another user
+        if (document == null)
+            throw new KeyNotFoundException(
+                "Document not found.");
+
+        //An original document has no parent
+        if (document.ParentDocumentId == null)
+            return document;
+
+        //For a revision, find its original document
+        var originalDocument = await _context.Documents
+            .FirstOrDefaultAsync(d =>
+                d.Id == document.ParentDocumentId.Value &&
+                d.UserId == userId &&
+                !d.IsArchived);
+
+        //Reject revisions whose original document is unavailable
+        if (originalDocument == null)
+            throw new KeyNotFoundException(
+                "Original document not found.");
+
+        return originalDocument;
+    }
+
+
+    //Find the next available version number for a document
+    private async Task<int> GetNextDocumentVersionAsync(
+        Guid originalDocumentId)
+    {
+        //Find the highest version among existing revisions
+        int latestVersion = await _context.Documents
+            .Where(d =>
+                d.Id == originalDocumentId ||
+                d.ParentDocumentId == originalDocumentId)
+            .MaxAsync(d => (int?)d.DocumentVersion) ?? 0;
+
+        //The next version is one greater than the latest
+        return checked(latestVersion + 1);
     }
 
     private static void ValidateFileContent(
@@ -206,24 +355,26 @@ public class DocumentService
     {
         //Find documents owned by the user that are not archived
         var documents = await _context.Documents
-            .Where(r =>
-                r.UserId == userId &&
-                !r.IsArchived)
+            .Where(d =>
+                d.UserId == userId &&
+                !d.IsArchived)
 
             //Display the newest documents first
-            .OrderByDescending(r => r.UploadedAt)
+            .OrderByDescending(d => d.UploadedAt)
 
             //Select only the fields we want to return
-            .Select(r => new DocumentResponseDto
+            .Select(d => new DocumentResponseDto
             {
-                Id = r.Id,
-                Title = r.Title,
-                OriginalFileName = r.OriginalFileName,
-                ContentType = r.ContentType,
-                FileSizeBytes = r.FileSizeBytes,
-                Status = r.Status,
-                DocumentType = r.DocumentType,
-                UploadedAt = r.UploadedAt
+                Id = d.Id,
+                Title = d.Title,
+                OriginalFileName = d.OriginalFileName,
+                ContentType = d.ContentType,
+                FileSizeBytes = d.FileSizeBytes,
+                Status = d.Status,
+                ParentDocumentId = d.ParentDocumentId,
+                DocumentVersion = d.DocumentVersion,
+                DocumentType = d.DocumentType,
+                UploadedAt = d.UploadedAt
             }).ToListAsync();
 
         return documents;
@@ -237,22 +388,24 @@ public class DocumentService
     {
         //Search using both document ID and user ID
         var document = await _context.Documents
-            .Where(r =>
-                r.Id == documentId &&
-                r.UserId == userId &&
-                !r.IsArchived)
+            .Where(d =>
+                d.Id == documentId &&
+                d.UserId == userId &&
+                !d.IsArchived)
 
             //Convert the Document into a Document Response Dto
-            .Select(r => new DocumentResponseDto
+            .Select(d => new DocumentResponseDto
             {
-                Id = r.Id,
-                Title = r.Title,
-                OriginalFileName = r.OriginalFileName,
-                ContentType = r.ContentType,
-                FileSizeBytes = r.FileSizeBytes,
-                Status = r.Status,
-                DocumentType = r.DocumentType,
-                UploadedAt = r.UploadedAt
+                Id = d.Id,
+                Title = d.Title,
+                OriginalFileName = d.OriginalFileName,
+                ContentType = d.ContentType,
+                FileSizeBytes = d.FileSizeBytes,
+                Status = d.Status,
+                ParentDocumentId = d.ParentDocumentId,
+                DocumentVersion = d.DocumentVersion,
+                DocumentType = d.DocumentType,
+                UploadedAt = d.UploadedAt
             }).FirstOrDefaultAsync(); //Return the document or null if it doesn't exist
 
         return document;
@@ -266,10 +419,10 @@ public class DocumentService
     {
         //Find the document and verify its owner
         var document = await _context.Documents
-            .FirstOrDefaultAsync(r =>
-                r.Id == documentId &&
-                r.UserId == userId &&
-                !r.IsArchived);
+            .FirstOrDefaultAsync(d =>
+                d.Id == documentId &&
+                d.UserId == userId &&
+                !d.IsArchived);
 
         //Return false if the document wasn't found
         if (document == null)
