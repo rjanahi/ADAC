@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{B5EF9015-9929-89D5-D604-DAD83FC79048}|DocumentSystemApi\\DocumentSystemApi.csproj|c:\\users\\computia.me\\desktop\\clp\\v2\\project\\adac\\documentsystem\\documentsystemapi\\controllers\\authenticationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B5EF9015-9929-89D5-D604-DAD83FC79048}|DocumentSystemApi\\DocumentSystemApi.csproj|solutionrelative:documentsystemapi\\controllers\\authenticationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B5EF9015-9929-89D5-D604-DAD83FC79048}|DocumentSystemApi\\DocumentSystemApi.csproj|c:\\users\\computia.me\\desktop\\clp\\v2\\project\\adac\\documentsystem\\documentsystemapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B5EF9015-9929-89D5-D604-DAD83FC79048}|DocumentSystemApi\\DocumentSystemApi.csproj|solutionrelative:documentsystemapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{B5EF9015-9929-89D5-D604-DAD83FC79048}|DocumentSystemApi\\DocumentSystemApi.csproj|c:\\users\\computia.me\\desktop\\clp\\v2\\project\\adac\\documentsystem\\documentsystemapi\\services\\documentchatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B5EF9015-9929-89D5-D604-DAD83FC79048}|DocumentSystemApi\\DocumentSystemApi.csproj|solutionrelative:documentsystemapi\\services\\documentchatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -55,6 +63,34 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "AuthenticationController.cs",
+              "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\DocumentSystemApi\\Controllers\\AuthenticationController.cs",
+              "RelativeDocumentMoniker": "DocumentSystemApi\\Controllers\\AuthenticationController.cs",
+              "ToolTip": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\DocumentSystemApi\\Controllers\\AuthenticationController.cs",
+              "RelativeToolTip": "DocumentSystemApi\\Controllers\\AuthenticationController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABkAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-22T05:59:42.033Z",
+              "EditorCaption": "",
+              "OwnerCaption": "%2"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\DocumentSystemApi\\Program.cs",
+              "RelativeDocumentMoniker": "DocumentSystemApi\\Program.cs",
+              "ToolTip": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\DocumentSystemApi\\Program.cs",
+              "RelativeToolTip": "DocumentSystemApi\\Program.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABoAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-22T05:49:59.63Z",
+              "EditorCaption": "",
+              "OwnerCaption": "%2"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "DocumentChatService.cs",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\DocumentSystemApi\\Services\\DocumentChatService.cs",
               "RelativeDocumentMoniker": "DocumentSystemApi\\Services\\DocumentChatService.cs",
@@ -68,7 +104,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "ChatController.cs",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\DocumentSystemApi\\Controllers\\ChatController.cs",
               "RelativeDocumentMoniker": "DocumentSystemApi\\Controllers\\ChatController.cs",
@@ -77,12 +113,11 @@
               "ViewState": "AgIAAOYAAAAAAAAAAAAWwAEBAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-22T00:26:34.427Z",
-              "EditorCaption": "",
               "OwnerCaption": "%2"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "ChatMessageService.cs",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\DocumentSystemApi\\Services\\ChatMessageService.cs",
               "RelativeDocumentMoniker": "DocumentSystemApi\\Services\\ChatMessageService.cs",
@@ -91,12 +126,11 @@
               "ViewState": "AgIAAK4AAAAAAAAAAAAuwMoAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-22T00:24:47.516Z",
-              "EditorCaption": "",
               "OwnerCaption": "%2"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "SummaryViewer.css",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\documentsystemclient\\src\\pages\\summary\\SummaryViewer.css",
               "RelativeDocumentMoniker": "documentsystemclient\\src\\pages\\summary\\SummaryViewer.css",
@@ -109,7 +143,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "DocumentChat.css",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\documentsystemclient\\src\\pages\\analysis\\DocumentChat.css",
               "RelativeDocumentMoniker": "documentsystemclient\\src\\pages\\analysis\\DocumentChat.css",
@@ -122,7 +156,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "DocumentDashboard.css",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\documentsystemclient\\src\\pages\\dashboard\\DocumentDashboard.css",
               "RelativeDocumentMoniker": "documentsystemclient\\src\\pages\\dashboard\\DocumentDashboard.css",
@@ -135,7 +169,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "DocumentDashboard.jsx",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\documentsystemclient\\src\\pages\\dashboard\\DocumentDashboard.jsx",
               "RelativeDocumentMoniker": "documentsystemclient\\src\\pages\\dashboard\\DocumentDashboard.jsx",
@@ -148,7 +182,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 11,
               "Title": "DocumentChat.jsx",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\documentsystemclient\\src\\pages\\analysis\\DocumentChat.jsx",
               "RelativeDocumentMoniker": "documentsystemclient\\src\\pages\\analysis\\DocumentChat.jsx",
@@ -161,7 +195,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "AnalysisViewer.jsx",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\documentsystemclient\\src\\pages\\analysis\\AnalysisViewer.jsx",
               "RelativeDocumentMoniker": "documentsystemclient\\src\\pages\\analysis\\AnalysisViewer.jsx",
@@ -170,12 +204,11 @@
               "ViewState": "AgIAAJYCAAAAAAAAAAAWwLICAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
               "WhenOpened": "2026-11-15T23:08:25.901Z",
-              "EditorCaption": "",
               "OwnerCaption": "%2"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "AnalysisViewer.css",
               "DocumentMoniker": "C:\\Users\\Computia.ME\\Desktop\\CLP\\v2\\Project\\ADAC\\DocumentSystem\\documentsystemclient\\src\\pages\\analysis\\AnalysisViewer.css",
               "RelativeDocumentMoniker": "documentsystemclient\\src\\pages\\analysis\\AnalysisViewer.css",

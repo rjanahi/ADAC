@@ -118,7 +118,7 @@ builder.Services
     .AddCookie(options =>
     {
         //Authentication cookie settings
-        options.Cookie.Name = "QADocumentSystem.Auth";
+        options.Cookie.Name = "DocumentSystem.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.SameSite = SameSiteMode.Lax;
