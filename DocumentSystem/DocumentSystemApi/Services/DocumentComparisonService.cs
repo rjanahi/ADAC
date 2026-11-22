@@ -14,6 +14,9 @@ public class DocumentComparisonService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
 
+    private const int MaxCombinedComparisonCharacters = 100_000;
+    private const int MaxSectionCharacters = 12_000;
+
     public DocumentComparisonService(
         DocumentDbContext context,
         HttpClient httpClient,
@@ -25,8 +28,8 @@ public class DocumentComparisonService
     }
 
     //Load and validate the two document versions
-    private async Task<(string PreviousText, string CurrentText)>
-        LoadComparisonDocumentsAsync(
+    private async Task<(string PreviousText, string CurrentText)>LoadComparisonDocumentsAsync
+        (
             Guid previousDocumentId,
             Guid currentDocumentId,
             Guid userId)
@@ -137,6 +140,21 @@ public class DocumentComparisonService
                 previousDocumentId,
                 currentDocumentId,
                 userId);
+
+
+        long totalCharacters =
+            (long)previousText.Length + currentText.Length;
+
+        if (totalCharacters > MaxCombinedComparisonCharacters)
+        {
+
+            throw new ArgumentException(
+                $"The selected documents contain {totalCharacters:N0} " +
+                $"characters combined. The current comparison limit is " +
+                $"{MaxCombinedComparisonCharacters:N0} characters.");
+
+        }
+
 
         //Step 2: Retrieve OpenAI configuration
         string apiKey = _configuration["OpenAI:ApiKey"] ?? "";
@@ -343,12 +361,21 @@ public class DocumentComparisonService
             currentDocument = currentText
         });
 
+
         var requestBody = new
         {
             model,
+
+            // Do not store the response for later API retrieval
+            store = false,
+
             instructions,
             input,
+
+            // Reject oversized requests instead of silently
+            // removing parts of the documents
             truncation = "disabled",
+
             text = new
             {
                 format = new
@@ -360,6 +387,7 @@ public class DocumentComparisonService
                 }
             }
         };
+
 
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -433,4 +461,5 @@ public class DocumentComparisonService
         throw new InvalidOperationException(
             "OpenAI returned no comparison result.");
     }
+
 }

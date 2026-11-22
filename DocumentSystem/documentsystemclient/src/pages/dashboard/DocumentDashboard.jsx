@@ -128,7 +128,7 @@ function DocumentDashboard({ user, onLogout }) {
 
 
     //Process the selected document
-    async function handleProcess(documentId) {
+    async function handleProcessAndClassify(documentId) {
 
         try {
             //Remember which document is being processed
@@ -143,9 +143,18 @@ function DocumentDashboard({ user, onLogout }) {
                 documentId
             );
 
+            //Remember which document is being classified
+            setClassifyingId(documentId);
+
+
+            //Call the ASP.NET Core classification endpoint
+            const result2 = await documentService.classifyDocument(
+                documentId
+            );
+
             //Display the number of chunks generated
             setMessage(
-                `Document processed successfully. ${result.chunksCreated} chunks created.`
+                `Document processed and clissified successfully. ${result.chunksCreated} chunks created, classified successfully as ${result2.documentType}. .`
             );
 
             //Retrieve updated document statuses from SQL Server
@@ -158,41 +167,9 @@ function DocumentDashboard({ user, onLogout }) {
         } finally {
             //Enable the processing button again
             setProcessingId(null);
-        }
-    }
-
-
-    //Classify a processed document as General or QA
-    async function handleClassify(documentId) {
-
-        try {
-            //Remember which document is being classified
-            setClassifyingId(documentId);
-
-            //Clear old messages
-            setError("");
-            setMessage("");
-
-            //Call the ASP.NET Core classification endpoint
-            const result = await documentService.classifyDocument(
-                documentId
-            );
-
-            //Show the classification returned by the AI
-            setMessage(
-                `Document classified successfully as ${result.documentType}.`
-            );
-
-            //Reload documents to display the saved classification
-            await loadDocuments();
-
-        } catch (err) {
-            //Display errors returned by the API
-            setError(err.message);
-
-        } finally {
             //Reset the classification loading state
             setClassifyingId(null);
+
         }
     }
 
@@ -286,7 +263,7 @@ function DocumentDashboard({ user, onLogout }) {
             {/* Dashboard header */}
             <header className="dashboard-header">
                 <div>
-                    <h1>Document Intelligence</h1>
+                    <h1>ADAC</h1>
                     <p>Welcome, {user.fullName}</p>
                 </div>
 
@@ -296,25 +273,7 @@ function DocumentDashboard({ user, onLogout }) {
             </header>
 
 
-            {/* Document statistics */}
-            <section className="stats">
-
-                <div className="stat-card">
-                    <h3>Total Documents</h3>
-                    <strong>{documents.length}</strong>
-                </div>
-
-                <div className="stat-card">
-                    <h3>Ready</h3>
-                    <strong>{readyCount}</strong>
-                </div>
-
-                <div className="stat-card">
-                    <h3>Awaiting Processing</h3>
-                    <strong>{uploadedCount}</strong>
-                </div>
-
-            </section>
+            
 
 
             {/* Document upload form */}
@@ -365,6 +324,26 @@ function DocumentDashboard({ user, onLogout }) {
                 {error && (
                     <p className="error-message">{error}</p>
                 )}
+
+            </section>
+
+            {/* Document statistics */}
+            <section className="stats">
+
+                <div className="stat-card">
+                    <h3>Total Documents</h3>
+                    <strong>{documents.length}</strong>
+                </div>
+
+                <div className="stat-card">
+                    <h3>Ready</h3>
+                    <strong>{readyCount}</strong>
+                </div>
+
+                <div className="stat-card">
+                    <h3>Awaiting Processing</h3>
+                    <strong>{uploadedCount}</strong>
+                </div>
 
             </section>
 
@@ -464,8 +443,8 @@ function DocumentDashboard({ user, onLogout }) {
                                     {document.status === "Uploaded" && (
                                         <button
                                             type="button"
-                                            onClick={() => handleProcess(document.id)}
-                                            disabled={processingId !== null}
+                                            onClick={() => handleProcessAndClassify(document.id)}
+                                            disabled={processingId !== null && classifyingId !== null}
                                         >
                                             {processingId === document.id
                                                 ? "Processing..."
@@ -477,35 +456,14 @@ function DocumentDashboard({ user, onLogout }) {
                                     {document.status === "Failed" && (
                                         <button
                                             type="button"
-                                            onClick={() => handleProcess(document.id)}
-                                            disabled={processingId !== null}
+                                            onClick={() => handleProcessAndClassify(document.id)}
+                                            disabled={processingId !== null && classifyingId !== null}
                                         >
                                             {processingId === document.id
                                                 ? "Retrying..."
                                                 : "Retry"}
                                         </button>
                                     )}
-
-
-                                    {/* Show Classify for processed documents without a classification */}
-                                    {document.status === "Ready" &&
-                                        document.documentType === "Unknown" && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleClassify(document.id)}
-
-                                                //Disable while processing or classification is running
-                                                disabled={
-                                                    classifyingId !== null ||
-                                                    processingId !== null
-                                                }
-                                            >
-                                                {classifyingId === document.id
-                                                    ? "Classifying..."
-                                                    : "Classify"}
-                                            </button>
-                                        )}
-
 
                                     {/* Allow analysis for both General and QA documents */}
                                     {document.status === "Ready" &&

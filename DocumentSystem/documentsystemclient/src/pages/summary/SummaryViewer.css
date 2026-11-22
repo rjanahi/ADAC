@@ -1,158 +1,364 @@
-
-/* Main summary page */
 .summary-page {
-    max-width: 1000px;
+    --adac-primary: #2563eb;
+    --adac-primary-hover: #1d4ed8;
+    --adac-ink: #15243b;
+    --adac-muted: #687991;
+    --adac-border: #e3eaf3;
+    --adac-surface: #ffffff;
+    --adac-canvas: #f5f8fd;
+    --adac-radius: 18px;
+    --adac-shadow: 0 8px 30px rgba(29, 54, 93, .045);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 100vh;
     margin: 0 auto;
-    padding: 32px 24px;
-    color: #1e293b;
+    padding: clamp(18px, 3.5vw, 44px);
+    background: var(--adac-canvas);
+    color: var(--adac-ink);
+    color-scheme: light;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: left;
 }
 
-/* Summary page header */
+    .summary-page *,
+    .summary-page *::before,
+    .summary-page *::after {
+        box-sizing: border-box;
+    }
+
+/* Dark brand header identical in spirit to the dashboard. */
 .summary-header {
-    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-width: 0;
+    margin-bottom: 23px;
+    padding: 29px 34px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 22px;
+    background: radial-gradient(circle at 84% -35%, rgba(56, 189, 248, .24), transparent 48%), linear-gradient(115deg, #0d1b36 0%, #142c58 68%, #183e70 100%);
+    box-shadow: 0 16px 36px rgba(13, 31, 62, .13);
 }
+
+    .summary-header > div {
+        min-width: 0;
+    }
 
     .summary-header h1 {
-        margin: 16px 0 8px;
+        margin: 13px 0 7px;
+        color: #ffffff;
+        font-size: clamp(26px, 3vw, 35px);
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -.045em;
     }
 
     .summary-header p {
-        color: #64748b;
+        margin: 0;
+        color: #c9d8ef;
+        font-size: 13px;
+        overflow-wrap: anywhere;
     }
 
-/* Back navigation */
-.summary-page .summary-back-button {
-    background: transparent;
-    color: #2563eb;
-    border: none;
-    padding: 0;
+.summary-page button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 100%;
+    min-height: 43px;
+    padding: 10px 18px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--adac-primary);
+    color: #ffffff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.3;
+    text-align: center;
     cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-/* Main content sections */
+    .summary-page button:hover:not(:disabled) {
+        background: var(--adac-primary-hover);
+        box-shadow: 0 5px 14px rgba(37, 99, 235, .17);
+        transform: translateY(-1px);
+    }
+
+    .summary-page button:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+
+    .summary-page button:disabled {
+        opacity: .52;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .summary-page button:focus-visible,
+    .summary-page select:focus-visible {
+        outline: 3px solid #93c5fd;
+        outline-offset: 3px;
+    }
+
+.summary-page .summary-back-button {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: #b9d8ff;
+    font-size: 13px;
+}
+
+    .summary-page .summary-back-button::before {
+        content: "←";
+        font-size: 17px;
+        line-height: 1;
+    }
+
+    .summary-page .summary-back-button:hover:not(:disabled) {
+        background: transparent;
+        color: #ffffff;
+        box-shadow: none;
+        transform: none;
+    }
+
+/* Summary controls and saved content live in matching white cards. */
 .summary-card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 26px;
-    margin-bottom: 22px;
+    min-width: 0;
+    margin: 0 0 22px;
+    padding: clamp(20px, 2.55vw, 30px);
+    border: 1px solid var(--adac-border);
+    border-radius: var(--adac-radius);
+    background: var(--adac-surface);
+    box-shadow: var(--adac-shadow);
 }
 
     .summary-card h2 {
-        margin-top: 0;
+        margin: 0 0 17px;
+        color: var(--adac-ink);
+        font-size: 20px;
+        font-weight: 750;
+        line-height: 1.3;
+        letter-spacing: -.035em;
+        overflow-wrap: anywhere;
     }
 
-/* Summary type selector and generate button */
+    .summary-card p {
+        color: #55677e;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+    }
+
 .summary-controls {
     display: flex;
-    align-items: end;
-    gap: 16px;
+    align-items: flex-end;
     flex-wrap: wrap;
+    gap: 14px;
 }
 
 .summary-field {
     display: flex;
+    flex: 1 1 280px;
     flex-direction: column;
     gap: 8px;
-    flex: 1;
     min-width: 220px;
 }
 
     .summary-field label {
-        font-size: 14px;
-        font-weight: 600;
+        color: #34445d;
+        font-size: 13px;
+        font-weight: 750;
     }
 
     .summary-field select {
-        padding: 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        background: white;
-        font-size: 14px;
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 46px;
+        padding: 11px 14px;
+        border: 1px solid #d7e1ef;
+        border-radius: 10px;
+        outline: none;
+        background: #f9fbfe;
+        color: #253b57;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 160ms ease, box-shadow 160ms ease;
     }
 
-/* Main action button */
-.summary-page button:not(.summary-back-button) {
-    padding: 12px 18px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
+        .summary-field select:hover:not(:disabled) {
+            border-color: #a9bddb;
+        }
 
-.summary-page button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+        .summary-field select:focus-visible {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, .1);
+        }
+
+.summary-controls > button {
+    min-height: 46px;
+    padding-inline: 22px;
 }
 
 .summary-description {
-    color: #64748b;
-    font-size: 14px;
-    margin-top: 16px;
+    margin: 16px 0 0;
+    padding: 12px 15px;
+    border: 1px solid #dbe7fb;
+    border-radius: 10px;
+    background: #f3f8ff;
+    color: #59749b !important;
+    font-size: 12px;
+    line-height: 1.7;
 }
 
-/* Saved summary versions */
+/* History pills help distinguish the selected saved version. */
 .summary-history {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 9px;
 }
 
 .summary-page .summary-version {
-    background: #f1f5f9 !important;
-    color: #334155 !important;
+    min-height: 37px;
+    padding: 9px 15px;
+    border: 1px solid #dce5f1;
+    border-radius: 999px;
+    background: #f5f8fc;
+    color: #52667d;
+    font-size: 12px;
+    box-shadow: none;
 }
 
-    .summary-page .summary-version.selected {
-        background: #dbeafe !important;
-        color: #1d4ed8 !important;
+    .summary-page .summary-version:hover:not(:disabled) {
+        border-color: #bad1f6;
+        background: #eaf2ff;
+        color: #1d4ed8;
+        box-shadow: none;
     }
 
-/* Generated summary information */
+    .summary-page .summary-version.selected {
+        border-color: #2563eb;
+        background: #2563eb;
+        color: #ffffff;
+    }
+
+        .summary-page .summary-version.selected:hover:not(:disabled) {
+            border-color: #1d4ed8;
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+
+/* Result text is tuned for longer, AI-generated reports. */
 .summary-result-header {
-    margin-bottom: 20px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 22px;
+    padding-bottom: 19px;
+    border-bottom: 1px solid #e8edf5;
 }
+
+    .summary-result-header h2 {
+        margin-bottom: 7px;
+    }
 
 .summary-meta {
-    color: #64748b;
-    font-size: 14px;
+    margin: 0;
+    color: var(--adac-muted) !important;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-/* Preserve paragraphs and newlines returned by AI */
 .summary-content {
+    max-width: 90ch;
+    color: #384e6a;
+    font-size: 14px;
+    line-height: 1.95;
     white-space: pre-wrap;
-    line-height: 1.9;
-    font-size: 15px;
     overflow-wrap: anywhere;
 }
 
-/* Feedback messages */
+/* API messages use the same alert surfaces as the dashboard. */
+.summary-success,
+.summary-error {
+    margin: 0 0 19px;
+    padding: 13px 15px;
+    border: 1px solid;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
 .summary-success {
-    color: #15803d;
-    margin-bottom: 20px;
+    border-color: #b7ebcc;
+    background: #effcf4;
+    color: #166534;
 }
 
 .summary-error {
-    color: #b91c1c;
-    margin-bottom: 20px;
+    border-color: #fecaca;
+    background: #fff1f2;
+    color: #b42335;
 }
 
-/* Mobile layout */
 @media (max-width: 650px) {
+    .summary-page {
+        padding: 15px;
+    }
+
+    .summary-header {
+        padding: 24px 21px;
+        border-radius: 17px;
+    }
+
+        .summary-header h1 {
+            font-size: 28px;
+        }
+
+    .summary-card {
+        padding: 21px 18px;
+        margin-bottom: 16px;
+        border-radius: 15px;
+    }
+
     .summary-controls {
         flex-direction: column;
         align-items: stretch;
     }
 
     .summary-field {
+        flex: 1 1 auto;
         min-width: 0;
         width: 100%;
     }
 
-    .summary-card {
-        padding: 20px;
+    .summary-controls > button {
+        width: 100%;
+    }
+
+    .summary-content {
+        font-size: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .summary-page *,
+    .summary-page *::before,
+    .summary-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
     }
 }

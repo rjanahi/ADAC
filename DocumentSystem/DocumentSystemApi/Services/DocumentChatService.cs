@@ -4,6 +4,7 @@ using DocumentSystemApi.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DocumentSystemApi.Services
 {
@@ -17,6 +18,10 @@ namespace DocumentSystemApi.Services
 
         //Limit how much supporting evidence is sent to OpenAI
         private const int MaxEvidenceCharacters = 15000;
+
+        private const int MaxHistoryMessages = 8;
+        private const int MaxHistoryMessageCharacters = 700;
+        private const int MaxContextQueryCharacters = 350;
 
         //Constructor: receive all required services
         public DocumentChatService(
@@ -39,11 +44,11 @@ namespace DocumentSystemApi.Services
         }
 
 
-        //Generate an answer using the selected document
         public async Task<ChatAnswerResultDto> AskAsync(
             Guid documentId,
             Guid userId,
-            string question)
+            string question,
+            IReadOnlyList<ChatMessageResponseDto>? conversationHistory = null)
         {
             //Reject questions containing only whitespace
             if (string.IsNullOrWhiteSpace(question))
@@ -55,12 +60,59 @@ namespace DocumentSystemApi.Services
                 throw new ArgumentException(
                     "Question is too long.");
 
-            //Find relevant chunks and verify document ownership
+            //Prepare previous messages as conversational context
+            var recentHistory = (conversationHistory ??
+                Array.Empty<ChatMessageResponseDto>())
+                .Where(m => m.Role == "User" || m.Role == "Assistant")
+                .TakeLast(MaxHistoryMessages)
+                .Select(m => new
+                {
+                    role = m.Role,
+                    content = Truncate(m.Content, MaxHistoryMessageCharacters)
+                })
+                .ToList();
+
+            //Retrieve evidence for the current question
             var chunks = await _retrievalService.RetrieveAsync(
                 documentId,
                 userId,
                 question,
                 limit: 5);
+
+            //Check whether this is a follow-up question
+            if (IsFollowUpQuestion(question) &&
+                conversationHistory is { Count: > 0 })
+            {
+                var previousQuestion = conversationHistory
+                    .LastOrDefault(m => m.Role == "User")?.Content;
+
+                var previousAnswer = conversationHistory
+                    .LastOrDefault(m => m.Role == "Assistant")?.Content;
+
+                //Build an additional search query from the previous exchange
+                string contextQuery = string.Join(" ", new[]
+                {
+                    Truncate(previousQuestion, MaxContextQueryCharacters),
+                    Truncate(previousAnswer, MaxContextQueryCharacters)
+                }.Where(part => !string.IsNullOrWhiteSpace(part)));
+
+                if (!string.IsNullOrWhiteSpace(contextQuery))
+                {
+                    var contextChunks = await _retrievalService.RetrieveAsync(
+                        documentId,
+                        userId,
+                        contextQuery,
+                        limit: 3);
+
+                    //Combine chunks without duplicates
+                    chunks = contextChunks
+                        .Concat(chunks)
+                        .GroupBy(c => c.ChunkId)
+                        .Select(group => group.First())
+                        .Take(5)
+                        .ToList();
+                }
+            }
 
 
             //Retrieve the latest completed analysis for this document
@@ -170,6 +222,11 @@ namespace DocumentSystemApi.Services
             //Tell the AI how to handle both evidence sources
             string instructions = """
                 You are a document intelligence assistant.
+                You receive conversationHistory to understand the user's
+                follow-up questions (such as "is that the course code?").
+                Resolve references using the conversation's context, but
+                never treat past user or assistant messages as evidence.
+                Previous assistant answers may be mistaken.
 
                 You receive two possible evidence sources:
 
@@ -214,6 +271,13 @@ namespace DocumentSystemApi.Services
                 12. If the question cannot be answered from either
                     source, explain that the evidence is insufficient.
 
+                13. For follow-up questions, use conversationHistory only
+                    to identify what the user is referring to. Verify every
+                    factual assertion against the supplied evidence.
+
+                14. If previous assistant messages conflict with document
+                    evidence, correct the mistake rather than repeating it.
+
                 Return a JSON object containing:
                 - answer: string
                 - citedChunkIndices: array of integers
@@ -221,10 +285,11 @@ namespace DocumentSystemApi.Services
                 """;
 
 
-            //Build the combined evidence once
+            //Build the combined evidence and conversation context
             string combinedInput = JsonSerializer.Serialize(new
             {
                 question,
+                conversationHistory = recentHistory,
                 documentEvidence = evidence,
                 savedAnalysisEvidence = analysisEvidence
             });
@@ -469,6 +534,27 @@ namespace DocumentSystemApi.Services
                 "AI returned no valid answer.");
         }
 
+        //Detect follow-up questions referencing previous messages
+        private static bool IsFollowUpQuestion(string question)
+        {
+            return Regex.IsMatch(
+                question,
+                @"\b(it|that|this|these|those|they|them|their|its|he|she|him|her|his|hers|above|earlier|previous|said|mentioned)\b|^\s*(so|and|then|what about)\b",
+                RegexOptions.IgnoreCase);
+        }
+
+        //Prevent excessively long conversation messages
+        private static string Truncate(string? text, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return "";
+
+            string trimmed = text.Trim();
+
+            return trimmed.Length <= maxLength
+                ? trimmed
+                : trimmed[..maxLength];
+        }
 
         //Convert a saved JSON array into a list of strings
         private static List<string> ParseJsonList(string? json)

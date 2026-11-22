@@ -273,8 +273,8 @@ public class DocumentService
         var originalDocument = await _context.Documents
             .FirstOrDefaultAsync(d =>
                 d.Id == document.ParentDocumentId.Value &&
-                d.UserId == userId &&
-                !d.IsArchived);
+                d.UserId == userId);
+
 
         //Reject revisions whose original document is unavailable
         if (originalDocument == null)

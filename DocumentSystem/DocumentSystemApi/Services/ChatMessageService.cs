@@ -167,6 +167,48 @@ namespace DocumentSystemApi.Services
                 .ToList();
         }
 
+        //Retrieve recent messages from a conversation
+        public async Task<List<ChatMessageResponseDto>> GetRecentMessagesAsync(
+            Guid conversationId,
+            Guid userId,
+            int limit = 8)
+        {
+            if (conversationId == Guid.Empty || userId == Guid.Empty)
+                throw new ArgumentException(
+                    "Valid conversation and user IDs are required.");
+            
+            limit = Math.Clamp(limit, 1, 20);
+
+            //Verify the conversation belongs to the user and document
+            bool conversationExists = await _context.ChatConversations
+                .AnyAsync(c =>
+                    c.Id == conversationId &&
+                    c.UserId == userId &&
+                    !c.IsArchived &&
+                    _context.Documents.Any(d =>
+                        d.Id == c.DocumentId &&
+                        d.UserId == userId &&
+                        !d.IsArchived));
+
+            if (!conversationExists)
+                throw new KeyNotFoundException("Conversation not found.");
+
+            //Get the newest messages
+            var messages = await _context.ChatMessages
+                .AsNoTracking()
+                .Where(m => m.ConversationId == conversationId)
+                .OrderByDescending(m => m.CreatedAt)
+                .ThenByDescending(m => m.Id)
+                .Take(limit)
+                .ToListAsync();
+
+            //Return messages in chronological order
+            return messages
+                .OrderBy(m => m.CreatedAt)
+                .ThenBy(m => m.Id)
+                .Select(ToResponseDto)
+                .ToList();
+        }
 
         //Convert one saved message into a response DTO
         private static ChatMessageResponseDto ToResponseDto(

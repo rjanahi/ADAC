@@ -62,25 +62,6 @@ function SummaryViewer({ analysis, document, onBack }) {
 
     }, [analysis.analysisId]);
 
-
-    //Keep the selected summary consistent with its type
-    useEffect(() => {
-
-        //Find summaries matching the selected type
-        const matching = history.filter(
-            (item) => item.summaryType === summaryType
-        );
-
-        //Select the most recently created matching summary
-        const latest = [...matching].sort(
-            (a, b) => b.version - a.version
-        )[0];
-
-        setSelectedSummary(latest || null);
-
-    }, [summaryType, history]);
-
-
     //Generate a new summary from the selected analysis
     async function handleGenerate() {
         try {
@@ -149,6 +130,11 @@ function SummaryViewer({ analysis, document, onBack }) {
         .sort((a, b) => b.version - a.version);
 
 
+    const displayedSummary =
+        selectedSummary?.summaryType === summaryType
+            ? selectedSummary
+            : filteredHistory[0] || null;
+
     return (
         <div className="summary-page">
 
@@ -190,6 +176,7 @@ function SummaryViewer({ analysis, document, onBack }) {
                             disabled={generating || loading}
                             onChange={(event) => {
                                 setSummaryType(event.target.value);
+                                setSelectedSummary(null);
                                 setMessage("");
                                 setError("");
                             }}
@@ -264,7 +251,7 @@ function SummaryViewer({ analysis, document, onBack }) {
                                 type="button"
                                 disabled={loading || generating}
                                 className={
-                                    selectedSummary?.id === item.id
+                                    displayedSummary?.id === item.id
                                         ? "summary-version selected"
                                         : "summary-version"
                                 }
@@ -292,26 +279,26 @@ function SummaryViewer({ analysis, document, onBack }) {
 
 
             {/* Display the selected saved summary */}
-            {!loading && selectedSummary && (
+            {!loading && displayedSummary && (
                 <section className="summary-card">
 
                     <div className="summary-result-header">
                         <div>
-                            <h2>{selectedSummary.title}</h2>
+                            <h2>{displayedSummary.title}</h2>
 
                             <p className="summary-meta">
-                                {selectedSummary.summaryType}
+                                {displayedSummary.summaryType}
                                 {" | "}
-                                Version {selectedSummary.version}
+                                Version {displayedSummary.version}
                                 {" | "}
-                                {selectedSummary.status}
+                                {displayedSummary.status}
                             </p>
                         </div>
                     </div>
 
                     {/* Preserve paragraphs and line breaks */}
                     <div className="summary-content">
-                        {selectedSummary.content}
+                        {displayedSummary.content}
                     </div>
 
                 </section>
@@ -321,7 +308,7 @@ function SummaryViewer({ analysis, document, onBack }) {
             {/* Empty state for summaries not generated yet */}
             {!loading &&
                 !generating &&
-                !selectedSummary &&
+                !displayedSummary &&
                 !error && (
                     <section className="summary-card">
                         <h2>No Summary Yet</h2>

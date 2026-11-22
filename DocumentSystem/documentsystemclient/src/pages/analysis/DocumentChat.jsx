@@ -32,6 +32,7 @@ function DocumentChat({ document }) {
             setSelectedId(null);
             setMessages([]);
             setQuestion("");
+            setLoadingMessages(false);
             messageRequest.current += 1;
 
             try {
@@ -40,7 +41,10 @@ function DocumentChat({ document }) {
 
                 setConversations(results);
                 //Open the most recently updated conversation automatically
-                if (results.length > 0) setSelectedId(results[0].id);
+                if (results.length > 0) {
+                    setLoadingMessages(true);
+                    setSelectedId(results[0].id);
+                }
             } catch (err) {
                 if (active) setError(err.message);
             } finally {
@@ -53,26 +57,24 @@ function DocumentChat({ document }) {
     }, [document.id]);
 
     //Load messages when the selected conversation changes
+
     useEffect(() => {
-        if (!selectedId) {
-            setMessages([]);
-            setLoadingMessages(false);
-            return;
-        }
+        if (!selectedId) return;
 
         let active = true;
         const requestId = ++messageRequest.current;
-        setLoadingMessages(true);
-        setMessages([]);
 
         async function loadMessages() {
             try {
                 const results = await chatService.getMessages(selectedId);
+
                 if (active && requestId === messageRequest.current) {
                     setMessages(results);
                 }
             } catch (err) {
-                if (active) setError(err.message);
+                if (active && requestId === messageRequest.current) {
+                    setError(err.message);
+                }
             } finally {
                 if (active && requestId === messageRequest.current) {
                     setLoadingMessages(false);
@@ -81,7 +83,10 @@ function DocumentChat({ document }) {
         }
 
         loadMessages();
-        return () => { active = false; };
+
+        return () => {
+            active = false;
+        };
     }, [selectedId]);
 
     //Keep the latest message visible as the chat grows
@@ -101,6 +106,8 @@ function DocumentChat({ document }) {
                 "New Conversation"
             );
             setConversations((current) => [result, ...current]);
+            setMessages([]);
+            setLoadingMessages(true);
             setSelectedId(result.id);
             setQuestion("");
         } catch (err) {
@@ -129,6 +136,8 @@ function DocumentChat({ document }) {
                 );
                 conversationId = result.id;
                 setConversations((current) => [result, ...current]);
+                setMessages([]);
+                setLoadingMessages(true);
                 setSelectedId(conversationId);
             }
 
@@ -137,6 +146,8 @@ function DocumentChat({ document }) {
 
             //Reload from the database to avoid duplicate or out-of-order messages
             const savedMessages = await chatService.getMessages(conversationId);
+            messageRequest.current += 1;
+            setLoadingMessages(false);
             setMessages(savedMessages);
 
             //Move this conversation to the top of the sidebar
@@ -205,7 +216,14 @@ function DocumentChat({ document }) {
                                         ? "chat-conversation active"
                                         : "chat-conversation"
                                 }
-                                onClick={() => { setError(""); setSelectedId(item.id); }}
+                                onClick={() => {
+                                    if (selectedId === item.id) return;
+
+                                    setError("");
+                                    setMessages([]);
+                                    setLoadingMessages(true);
+                                    setSelectedId(item.id);
+                                }}
                             >
                                 {item.title}
                             </button>

@@ -31,6 +31,7 @@ function AnalysisViewerContent({
     //Store messages and errors
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const [messageVer, setMessageVer] = useState("");
 
     //Check whether the selected document is a QA Document
     const isQA = document.documentType === "QA";
@@ -119,8 +120,6 @@ function AnalysisViewerContent({
 
     const hasSavedAnalysis = Boolean(existingAnalysis);
 
-
-
     //Load analysis history when opening the viewer
     useEffect(() => {
         let active = true;
@@ -178,7 +177,6 @@ function AnalysisViewerContent({
         };
     }, [document.id, isQA]);
 
-
     //Load document versions when the selected document changes
     useEffect(() => {
         let active = true;
@@ -223,7 +221,6 @@ function AnalysisViewerContent({
 
                 setDocumentVersions(versions);
                 setVersionAnalyses(analysisLookup);
-
 
             } catch (err) {
                 if (active) {
@@ -301,7 +298,6 @@ function AnalysisViewerContent({
         setNewVersionFile(file);
     }
 
-
     //Upload the selected file as a new document version
     async function handleUploadNewVersion() {
         //Do not upload if no file is selected
@@ -316,7 +312,7 @@ function AnalysisViewerContent({
             //Clear previous messages
             setUploadVersionError("");
             setError("");
-            setMessage("");
+            setMessageVer("");
 
             //Upload the revision through the document service
             const uploadedDocument = await uploadDocumentVersion(
@@ -355,7 +351,6 @@ function AnalysisViewerContent({
             setUploadingVersion(false);
         }
     }
-
 
     //Process and classify a newly uploaded document version
     async function handlePrepareDocumentVersion(versionId) {
@@ -417,7 +412,6 @@ function AnalysisViewerContent({
             setClassifyingVersionId(null);
         }
     }
-
 
     //Generate a new analysis based on document type
     async function handleGenerate() {
@@ -502,27 +496,6 @@ function AnalysisViewerContent({
 
             //Enable the Generate button again
             setGenerating(false);
-        }
-    }
-
-
-    //Open a previous analysis version
-    async function handleSelectVersion(analysisId) {
-        try {
-            setLoading(true);
-            setError("");
-            setMessage("");
-            setPdfError("");
-
-            const result =
-                await analysisService.getAnalysisResult(analysisId);
-
-            setAnalysis(result);
-
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -710,6 +683,12 @@ function AnalysisViewerContent({
                         <p className="analysis-error">{error}</p>
                     )}
 
+                    {/* Display validation errors */}
+                    {uploadVersionError && (
+                        <p className="analysis-error">
+                            {uploadVersionError}
+                        </p>
+                    )}
 
                     {/* Display uploaded document versions */}
                     <section className="analysis-card">
@@ -919,14 +898,6 @@ function AnalysisViewerContent({
                                 </div>
                             )}
 
-                            {/* Display validation errors */}
-                            {uploadVersionError && (
-                                <p className="analysis-error">
-                                    {uploadVersionError}
-                                </p>
-                            )}
-
-
                             <button
                                 type="button"
                                 className="document-version-upload-button"
@@ -939,12 +910,6 @@ function AnalysisViewerContent({
                                     ? "Uploading Document..."
                                     : "Upload New Version"}
                             </button>
-
-                            {message && (
-                                <p className="analysis-success">
-                                    {message}
-                                </p>
-                            )}
 
                             <p className="document-version-upload-note">
                                 Supported formats: PDF, DOCX, TXT. Maximum size: 10 MB.
@@ -1132,12 +1097,8 @@ function AnalysisViewerContent({
 
                                                     {changes.map((change, index) => {
 
-                                                        //Identify this finding within the complete result
-                                                        const findingIndex = comparison.changes.indexOf(change);
-                                                        const findingId = `finding-${findingIndex}`;
-
                                                         const isExpanded =
-                                                            expandedComparisonFindings.includes(findingId);
+                                                            expandedComparisonFindings.includes(index);
 
                                                         const hasEvidence =
                                                             Boolean(
@@ -1147,7 +1108,7 @@ function AnalysisViewerContent({
 
                                                         return (
                                                             <article
-                                                                key={findingId}
+                                                                key={index}
                                                                 className={`comparison-change-card comparison-${changeType.toLowerCase()}`}
                                                             >
                                                                 {/* Finding title and category */}
@@ -1172,9 +1133,9 @@ function AnalysisViewerContent({
                                                                         type="button"
                                                                         className="comparison-evidence-toggle"
                                                                         aria-expanded={isExpanded}
-                                                                        aria-controls={`${findingId}-evidence`}
+                                                                        aria-controls={`${index}-evidence`}
                                                                         onClick={() =>
-                                                                            toggleComparisonFinding(findingId)
+                                                                            toggleComparisonFinding(index)
                                                                         }
                                                                     >
                                                                         {isExpanded
@@ -1190,7 +1151,7 @@ function AnalysisViewerContent({
                                                                 {/* Before and after document excerpts */}
                                                                 {hasEvidence && isExpanded && (
                                                                     <div
-                                                                        id={`${findingId}-evidence`}
+                                                                        id={`${index}-evidence`}
                                                                         className="comparison-excerpts"
                                                                     >
                                                                         <div className="comparison-excerpt-previous">
@@ -1492,21 +1453,12 @@ function AnalysisViewerContent({
 }
 
 
-//Control which document version the user is viewing
-function AnalysisViewer({ document, onBack }) {
 
-    //Store the currently selected document
+function AnalysisViewerSession({ document, onBack }) {
     const [selectedDocument, setSelectedDocument] = useState(document);
-
-    //Reset selection when the user opens another document
-    useEffect(() => {
-        setSelectedDocument(document);
-    }, [document.id]);
 
     //Switch between uploaded document versions
     function handleSelectDocumentVersion(version) {
-
-        //Ignore the version already being viewed
         if (version.id === selectedDocument.id) {
             return;
         }
@@ -1519,7 +1471,6 @@ function AnalysisViewer({ document, onBack }) {
             return;
         }
 
-        //Update the document displayed by the viewer
         setSelectedDocument(version);
     }
 
@@ -1529,6 +1480,17 @@ function AnalysisViewer({ document, onBack }) {
             document={selectedDocument}
             onBack={onBack}
             onSelectVersion={handleSelectDocumentVersion}
+        />
+    );
+}
+
+//Reset the viewer when opening a different document
+function AnalysisViewer({ document, onBack }) {
+    return (
+        <AnalysisViewerSession
+            key={document.id}
+            document={document}
+            onBack={onBack}
         />
     );
 }

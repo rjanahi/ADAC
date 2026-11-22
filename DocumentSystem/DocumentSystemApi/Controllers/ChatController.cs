@@ -238,6 +238,13 @@ namespace DocumentSystemApi.Controllers
                             dto.ConversationId,
                             userId.Value);
 
+                //Retrieve conversation history before saving the new question
+                var previousMessages =
+                    await _messageService.GetRecentMessagesAsync(
+                        dto.ConversationId,
+                        userId.Value,
+                        limit: 8);
+
                 //Save the user's question before calling OpenAI
                 var userMessage =
                     await _messageService.SaveMessageAsync(
@@ -246,12 +253,13 @@ namespace DocumentSystemApi.Controllers
                         "User",
                         dto.Message);
 
-                //Generate an AI answer using the document chunks
+                //Generate an AI answer using the document and conversation history
                 var answer =
                     await _documentChatService.AskAsync(
                         conversation.DocumentId,
                         userId.Value,
-                        dto.Message);
+                        dto.Message,
+                        previousMessages);
 
                 //Save the generated answer and its citations
                 var assistantMessage =

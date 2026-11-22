@@ -40,16 +40,30 @@ namespace DocumentSystemApi.Services
                 throw new KeyNotFoundException(
                     "Document not found.");
 
-            //Dont process an already processing document
-            if (Document.Status == "Processing")
+
+            var now = DateTimeOffset.UtcNow;
+
+            //Only one request can claim the document for processing
+            int updatedRows = await _context.Documents
+                .Where(d =>
+                    d.Id == documentId &&
+                    d.UserId == userId &&
+                    !d.IsArchived &&
+                    d.Status != "Processing")
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(d => d.Status, "Processing")
+                    .SetProperty(d => d.UpdatedAt, now));
+
+            //Another request already claimed the document
+            if (updatedRows == 0)
+            {
                 throw new InvalidOperationException(
                     "Document is already being processed.");
+            }
 
-            //Mark document as processing
-            Document.Status = "Processing";
-            Document.UpdatedAt = DateTimeOffset.UtcNow;
+            //Refresh the tracked entity after the database update
+            await _context.Entry(Document).ReloadAsync();
 
-            await _context.SaveChangesAsync();
 
             try
             {
