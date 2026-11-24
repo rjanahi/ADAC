@@ -24,8 +24,6 @@ public partial class DocumentDbContext : DbContext
 
     public virtual DbSet<GeneratedSummary> GeneratedSummaries { get; set; }
 
-    public virtual DbSet<ProcessingJob> ProcessingJobs { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -188,26 +186,6 @@ public partial class DocumentDbContext : DbContext
                 .HasForeignKey(d => d.AnalysisId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_GeneratedSummaries_DocumentAnalyses");
-        });
-
-        modelBuilder.Entity<ProcessingJob>(entity =>
-        {
-            entity.HasIndex(e => e.DocumentId, "IX_ProcessingJobs_DocumentId");
-
-            entity.HasIndex(e => new { e.Status, e.CreatedAt }, "IX_ProcessingJobs_Status_CreatedAt");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())", "DF_ProcessingJobs_Id");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetimeoffset())", "DF_ProcessingJobs_CreatedAt");
-            entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
-            entity.Property(e => e.JobType).HasMaxLength(30);
-            entity.Property(e => e.Status)
-                .HasMaxLength(30)
-                .HasDefaultValue("Pending", "DF_ProcessingJobs_Status");
-
-            entity.HasOne(d => d.Document).WithMany(p => p.ProcessingJobs)
-                .HasForeignKey(d => d.DocumentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ProcessingJobs_Documents");
         });
 
         modelBuilder.Entity<User>(entity =>
