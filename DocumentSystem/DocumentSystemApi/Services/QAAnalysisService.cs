@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using DocumentSystemApi.Data;
-using DocumentSystemApi.Dtos;
+using DocumentSystemApi.Dtos.Analysis;
 
 namespace DocumentSystemApi.Services
 {

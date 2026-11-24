@@ -1,4 +1,4 @@
-﻿namespace DocumentSystemApi.Dtos
+﻿namespace DocumentSystemApi.Dtos.Chat
 {
     //Represents conversation details returned to React
     public class ChatConversationResponseDto

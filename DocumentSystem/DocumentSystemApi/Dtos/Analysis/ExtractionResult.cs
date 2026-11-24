@@ -1,5 +1,4 @@
-﻿
-namespace DocumentSystemApi.Dtos
+﻿namespace DocumentSystemApi.Dtos.Analysis
 {
     //Represents text extracted from one document
     public class ExtractionResult

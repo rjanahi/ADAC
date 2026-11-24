@@ -1,9 +1,9 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using DocumentSystemApi.Data;
-using DocumentSystemApi.Dtos;
 using DocumentSystemApi.Models;
 using System.Data;
+using DocumentSystemApi.Dtos.Summary;
 
 namespace DocumentSystemApi.Services
 {

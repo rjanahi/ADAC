@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { documentService } from "../../services/documentService";
 import "./DocumentDashboard.css";
 
@@ -29,6 +29,7 @@ function DocumentDashboard({ user, onLogout }) {
 
     //Store the ID of the document currently being archived
     const [archivingId, setArchivingId] = useState(null);
+    const [activatingId, setActivatingId] = useState(null);
 
     //Store the document currently opened for analysis
     const [selectedDocument, setSelectedDocument] = useState(null);
@@ -39,35 +40,40 @@ function DocumentDashboard({ user, onLogout }) {
     //Store the currently selected document filter
     const [statusFilter, setStatusFilter] = useState("All");
 
+    // Archived view is determined by the selected filter
+    const isArchived = statusFilter === "Archived";
+
     //Store success and error messages
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
 
-    //Retrieve documents when the dashboard opens
-    useEffect(() => {
-        loadDocuments();
-    }, []);
-
-
-    //Get documents belonging to the current user
-    async function loadDocuments() {
+    // Retrieve documents for the selected archive view
+    const loadDocuments = useCallback(async (archived = false) => {
         try {
             setLoading(true);
             setError("");
 
-            //Call the C# DocumentsController
-            const result = await documentService.getDocuments();
+            const result = await documentService.getDocuments(
+                archived
+            );
 
-            //Update the documents displayed on the page
             setDocuments(result);
+
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
+
+    // Reload documents when the archive view changes
+    useEffect(() => {
+        setError("");
+        setMessage("");
+        loadDocuments(isArchived);
+    }, [isArchived, loadDocuments]);
 
     //Handle the user's file selection
     function handleFileChange(event) {
@@ -117,7 +123,11 @@ function DocumentDashboard({ user, onLogout }) {
             setTitle("");
 
             //Reload documents from SQL Server
-            await loadDocuments();
+            if (statusFilter === "All") {
+                await loadDocuments(false);
+            } else {
+                setStatusFilter("All");
+            }
 
         } catch (err) {
             setError(err.message);
@@ -213,6 +223,30 @@ function DocumentDashboard({ user, onLogout }) {
         }
     }
 
+    // Restore an archived document
+    async function handleActivate(documentId) {
+
+        try {
+            setActivatingId(documentId);
+
+            setError("");
+            setMessage("");
+
+            // Request restoration from ASP.NET Core
+            await documentService.activateDocument(documentId);
+
+            setMessage("Document restored successfully.");
+
+            // Reload archived documents
+            await loadDocuments(true);
+
+        } catch (err) {
+            setError(err.message);
+
+        } finally {
+            setActivatingId(null);
+        }
+    }
 
     //Count documents that finished text extraction
     const readyCount = documents.filter(
@@ -240,12 +274,15 @@ function DocumentDashboard({ user, onLogout }) {
         //Check whether the document matches the selected filter
         const matchesStatus =
             statusFilter === "All" ||
+            statusFilter === "Archived" ||
             document.status === statusFilter ||
             document.documentType === statusFilter;
 
         //Only display documents meeting both conditions
         return matchesSearch && matchesStatus;
     });
+
+    
 
     //Show the analysis viewer when a document is selected
     if (selectedDocument) {
@@ -272,12 +309,16 @@ function DocumentDashboard({ user, onLogout }) {
                 </button>
             </header>
 
-
-            
-
-
             {/* Document upload form */}
             <section className="dashboard-card">
+                {/* Success and error messages */}
+                {message && (
+                    <p className="success-message">{message}</p>
+                )}
+
+                {error && (
+                    <p className="error-message">{error}</p>
+                )}
 
                 <h2>Upload Document</h2>
 
@@ -316,14 +357,7 @@ function DocumentDashboard({ user, onLogout }) {
 
                 </form>
 
-                {/* Success and error messages */}
-                {message && (
-                    <p className="success-message">{message}</p>
-                )}
-
-                {error && (
-                    <p className="error-message">{error}</p>
-                )}
+               
 
             </section>
 
@@ -356,7 +390,7 @@ function DocumentDashboard({ user, onLogout }) {
 
                     <button
                         type="button"
-                        onClick={loadDocuments}
+                        onClick={() => loadDocuments(isArchived)}
                         disabled={loading}
                     >
                         Refresh
@@ -387,6 +421,7 @@ function DocumentDashboard({ user, onLogout }) {
                         aria-label="Filter documents"
                     >
                         <option value="All">All Documents</option>
+                        <option value="Archived">Archived</option>
                         <option value="Uploaded">Awaiting Processing</option>
                         <option value="Processing">Processing</option>
                         <option value="Ready">Ready</option>
@@ -401,7 +436,11 @@ function DocumentDashboard({ user, onLogout }) {
                 {loading ? (
                     <p>Loading documents...</p>
                 ) : documents.length === 0 ? (
-                    <p>No documents uploaded yet.</p>
+                        <p>
+                            {isArchived
+                                ? "No archived documents."
+                                : "No documents uploaded yet."}
+                        </p>
                 ) : filteredDocuments.length === 0 ? (
                     <p>No documents match your search or filter.</p>
                 ) : (
@@ -431,16 +470,18 @@ function DocumentDashboard({ user, onLogout }) {
                                 <div className="document-actions">
 
                                     {/* Apply a visual style based on the document status */}
-                                    <span
-                                        className={`document-status status-${document.status.toLowerCase()}`}
-                                    >
-                                        {document.status === "Uploaded"
-                                            ? "Awaiting Processing"
-                                            : document.status}
-                                    </span>
+                                    {!isArchived &&
+                                        <span
+                                            className={`document-status status-${document.status.toLowerCase()}`}
+                                        >
+                                            {document.status === "Uploaded"
+                                                ? "Awaiting Processing"
+                                                : document.status}
+                                        </span>
+                                    }
 
                                     {/* Only show Process when extraction hasn't completed */}
-                                    {document.status === "Uploaded" && (
+                                    {!isArchived && document.status === "Uploaded" && (
                                         <button
                                             type="button"
                                             onClick={() => handleProcessAndClassify(document.id)}
@@ -453,7 +494,7 @@ function DocumentDashboard({ user, onLogout }) {
                                     )}
 
                                     {/* Allow retrying a failed extraction */}
-                                    {document.status === "Failed" && (
+                                    {!isArchived && document.status === "Failed" && (
                                         <button
                                             type="button"
                                             onClick={() => handleProcessAndClassify(document.id)}
@@ -466,7 +507,7 @@ function DocumentDashboard({ user, onLogout }) {
                                     )}
 
                                     {/* Allow analysis for both General and QA documents */}
-                                    {document.status === "Ready" &&
+                                    {!isArchived && document.status === "Ready" &&
                                         ["General", "QA"].includes(document.documentType) && (
                                             <button
                                                 type="button"
@@ -479,30 +520,42 @@ function DocumentDashboard({ user, onLogout }) {
                                         )}
 
 
-                                    {/* Allow the user to archive this document */}
-                                    <button
-                                        type="button"
-                                        className="archive-button"
+                                    {/* Show Restore for archived documents */}
+                                    {isArchived ? (
 
-                                        //Pass the document ID and title to the handler
-                                        onClick={() =>
-                                            handleArchive(document.id, document.title)
-                                        }
+                                        <button
+                                            type="button"
+                                            className="activate-button"
+                                            onClick={() => handleActivate(document.id)}
+                                            disabled={activatingId !== null}
+                                        >
+                                            {activatingId === document.id
+                                                ? "Restoring..."
+                                                : "Restore"}
+                                        </button>
 
-                                        //Prevent conflicting actions while archiving
-                                        disabled={
-                                            archivingId !== null ||
-                                            processingId !== null ||
-                                            classifyingId !== null ||
-                                            document.status === "Processing"
-                                        }
-                                    >
-                                        {archivingId === document.id
-                                            ? "Archiving..."
-                                            : "Archive"}
-                                    </button>
+                                    ) : (
 
+                                        // Show Archive for active documents
+                                        <button
+                                            type="button"
+                                            className="archive-button"
+                                            onClick={() =>
+                                                handleArchive(document.id, document.title)
+                                            }
+                                            disabled={
+                                                archivingId !== null ||
+                                                processingId !== null ||
+                                                classifyingId !== null ||
+                                                document.status === "Processing"
+                                            }
+                                        >
+                                            {archivingId === document.id
+                                                ? "Archiving..."
+                                                : "Archive"}
+                                        </button>
 
+                                    )}
 
                                 </div>
 

@@ -1,7 +1,6 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace DocumentSystemApi.Dtos
+namespace DocumentSystemApi.Dtos.Chat
 {
     //Represents a question sent by the user
     public class ChatRequestDto : IValidatableObject

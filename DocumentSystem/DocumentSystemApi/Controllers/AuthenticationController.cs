@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Antiforgery;
-using DocumentSystemApi.Dtos;
+using DocumentSystemApi.Dtos.Auth;
 using DocumentSystemApi.Services;
 
 namespace DocumentSystemApi.Controllers

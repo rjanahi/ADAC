@@ -1,4 +1,4 @@
-﻿namespace DocumentSystemApi.Dtos
+﻿namespace DocumentSystemApi.Dtos.Analysis
 {
     //Represents one document chunk found by retrieval
     public class RetrievedChunkDto

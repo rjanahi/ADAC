@@ -1,6 +1,5 @@
-﻿
-using DocumentSystemApi.Data;
-using DocumentSystemApi.Dtos;
+﻿using DocumentSystemApi.Data;
+using DocumentSystemApi.Dtos.Document;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Text;

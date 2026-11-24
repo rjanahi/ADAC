@@ -1,10 +1,9 @@
-﻿
-using DocumentSystemApi.Dtos;
-using DocumentSystemApi.Models;
+﻿using DocumentSystemApi.Models;
 using Microsoft.EntityFrameworkCore;
 using DocumentSystemApi.Data;
+using DocumentSystemApi.Dtos.Chat;
 
-namespace QAReportSystemApi.Services
+namespace DocumentSystemApi.Services
 {
     public class ChatConversationService
     {

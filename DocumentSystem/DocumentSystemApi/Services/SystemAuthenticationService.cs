@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using DocumentSystemApi.Data;
-using DocumentSystemApi.Dtos;
 using DocumentSystemApi.Models;
+using DocumentSystemApi.Dtos.Auth;
 
 namespace DocumentSystemApi.Services
 {

@@ -1,9 +1,7 @@
-﻿
-using DocumentSystemApi.Dtos;
+﻿using DocumentSystemApi.Dtos.Chat;
 using DocumentSystemApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QAReportSystemApi.Services;
 using System.Security.Claims;
 
 namespace DocumentSystemApi.Controllers

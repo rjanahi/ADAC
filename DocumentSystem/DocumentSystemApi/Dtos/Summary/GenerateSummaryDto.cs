@@ -1,7 +1,6 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace DocumentSystemApi.Dtos
+namespace DocumentSystemApi.Dtos.Summary
 {
     //Represents a request to generate a new summary
     public class GenerateSummaryDto

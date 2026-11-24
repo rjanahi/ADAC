@@ -1,7 +1,7 @@
 ﻿
-using Microsoft.EntityFrameworkCore;
 using DocumentSystemApi.Data;
 using DocumentSystemApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DocumentSystemApi.Services
 {
@@ -22,54 +22,41 @@ namespace DocumentSystemApi.Services
             _extractionService = extractionService;
         }
 
-
         //Process an uploaded document and save its text as chunks
         public async Task<int> ProcessDocumentAsync(
             Guid documentId,
             Guid userId)
         {
             //Find the document and verify that the user owns it
-            var Document = await _context.Documents
-                .FirstOrDefaultAsync(r =>
-                    r.Id == documentId &&
-                    r.UserId == userId &&
-                    !r.IsArchived);
+            var document = await _context.Documents
+                .FirstOrDefaultAsync(d =>
+                    d.Id == documentId &&
+                    d.UserId == userId &&
+                    !d.IsArchived);
 
             //If document is not found
-            if (Document == null)
+            if (document == null)
                 throw new KeyNotFoundException(
                     "Document not found.");
 
-
-            var now = DateTimeOffset.UtcNow;
-
-            //Only one request can claim the document for processing
-            int updatedRows = await _context.Documents
-                .Where(d =>
-                    d.Id == documentId &&
-                    d.UserId == userId &&
-                    !d.IsArchived &&
-                    d.Status != "Processing")
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(d => d.Status, "Processing")
-                    .SetProperty(d => d.UpdatedAt, now));
-
-            //Another request already claimed the document
-            if (updatedRows == 0)
-            {
+            //Only allow uploaded or failed documents to be processed
+            if (document.Status != "Uploaded" &&
+                document.Status != "Failed")
                 throw new InvalidOperationException(
-                    "Document is already being processed.");
-            }
+                    "Document is already processed or being processed.");
 
-            //Refresh the tracked entity after the database update
-            await _context.Entry(Document).ReloadAsync();
+            //Mark the document as Processing
+            document.Status = "Processing";
+            document.UpdatedAt = DateTimeOffset.UtcNow;
 
+            //Save the update
+            await _context.SaveChangesAsync();
 
             try
             {
                 //Extract text from the stored document
                 var extraction = _extractionService.ExtractText(
-                    Document.FilePath);
+                    document.FilePath);
 
                 //Reject documents without readable text
                 if (string.IsNullOrWhiteSpace(extraction.FullText))
@@ -93,7 +80,7 @@ namespace DocumentSystemApi.Services
                         newChunks.Add(new DocumentChunk
                         {
                             Id = Guid.NewGuid(),
-                            DocumentId = Document.Id,
+                            DocumentId = document.Id,
                             ChunkIndex = chunkIndex,
                             Content = part,
                             PageNumber = section.PageNumber,
@@ -106,13 +93,10 @@ namespace DocumentSystemApi.Services
                     }
                 }
 
-                //Replace old chunks and update status together
-                using var transaction =
-                    await _context.Database.BeginTransactionAsync();
 
                 //Find any previous chunks for this document
                 var oldChunks = await _context.DocumentChunks
-                    .Where(c => c.DocumentId == Document.Id)
+                    .Where(c => c.DocumentId == document.Id)
                     .ToListAsync();
 
                 //Remove old chunks to avoid duplicate records
@@ -122,28 +106,29 @@ namespace DocumentSystemApi.Services
                 _context.DocumentChunks.AddRange(newChunks);
 
                 //Mark extraction as complete
-                Document.Status = "Ready";
-                Document.UpdatedAt = DateTimeOffset.UtcNow;
+                document.Status = "Ready";
+                document.UpdatedAt = DateTimeOffset.UtcNow;
 
                 //Save the chunks and Document status
                 await _context.SaveChangesAsync();
-
-                //Commit only after all database changes succeed
-                await transaction.CommitAsync();
 
                 //Return how many chunks were created
                 return newChunks.Count;
             }
             catch
             {
-                //Clear any pending changes from the failed attempt
+                //Clear pending changes if saving chunks failed
                 _context.ChangeTracker.Clear();
 
-                //Reload the Document so its status can be updated
+                //Find the document again
                 var failedDocument = await _context.Documents
-                    .FirstOrDefaultAsync(r => r.Id == documentId);
+                    .FirstOrDefaultAsync(d =>
+                        d.Id == documentId &&
+                        d.UserId == userId &&
+                        !d.IsArchived);
 
-                if (failedDocument != null)
+                if (failedDocument != null &&
+                    failedDocument.Status == "Processing")
                 {
                     //Record that processing failed
                     failedDocument.Status = "Failed";
@@ -156,7 +141,6 @@ namespace DocumentSystemApi.Services
                 throw;
             }
         }
-
 
         //Split text into smaller pieces
         private static List<string> SplitIntoChunks(string text)

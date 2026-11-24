@@ -1,10 +1,10 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using DocumentSystemApi.Data;
-using DocumentSystemApi.Dtos;
 using DocumentSystemApi.Models;
 using System.Data;
 using System.Text.Json;
+using DocumentSystemApi.Dtos.Analysis;
 
 namespace DocumentSystemApi.Services
 {

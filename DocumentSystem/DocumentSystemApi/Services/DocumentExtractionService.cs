@@ -2,9 +2,9 @@
 using System.Text;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentSystemApi.Dtos;
+using DocumentSystemApi.Dtos.Analysis;
 using UglyToad.PdfPig; //for pdf extraction
-using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor; 
+using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace DocumentSystemApi.Services
 {

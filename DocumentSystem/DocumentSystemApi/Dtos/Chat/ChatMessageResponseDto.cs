@@ -1,4 +1,4 @@
-﻿namespace DocumentSystemApi.Dtos
+﻿namespace DocumentSystemApi.Dtos.Chat
 {
     public class ChatMessageResponseDto
     {

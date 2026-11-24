@@ -1,5 +1,4 @@
-﻿
-namespace DocumentSystemApi.Dtos
+﻿namespace DocumentSystemApi.Dtos.Document
 {
 
     //The complete AI comparison between two document versions

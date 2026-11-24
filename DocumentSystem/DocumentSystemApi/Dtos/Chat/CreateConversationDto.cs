@@ -1,7 +1,6 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace DocumentSystemApi.Dtos
+namespace DocumentSystemApi.Dtos.Chat
 {
     //Represents a request to create a new chat conversation
     public class CreateConversationDto

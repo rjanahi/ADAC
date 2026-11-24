@@ -1,4 +1,4 @@
-﻿namespace DocumentSystemApi.Dtos
+﻿namespace DocumentSystemApi.Dtos.Document
 {
     //Data returned to the user about a document
     public class DocumentResponseDto

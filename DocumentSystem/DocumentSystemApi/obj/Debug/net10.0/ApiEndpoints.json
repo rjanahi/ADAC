@@ -99,7 +99,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DocumentSystemApi.Dtos.LoginDto",
+        "Type": "DocumentSystemApi.Dtos.Auth.LoginDto",
         "IsRequired": true
       }
     ],
@@ -135,7 +135,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DocumentSystemApi.Dtos.RegisterDto",
+        "Type": "DocumentSystemApi.Dtos.Auth.RegisterDto",
         "IsRequired": true
       }
     ],
@@ -151,7 +151,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DocumentSystemApi.Dtos.CreateConversationDto",
+        "Type": "DocumentSystemApi.Dtos.Chat.CreateConversationDto",
         "IsRequired": true
       }
     ],
@@ -215,7 +215,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DocumentSystemApi.Dtos.ChatRequestDto",
+        "Type": "DocumentSystemApi.Dtos.Chat.ChatRequestDto",
         "IsRequired": true
       }
     ],
@@ -228,7 +228,13 @@
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "isArchived",
+        "Type": "System.Nullable\u00601[[System.Boolean, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -252,6 +258,22 @@
     "Method": "DeleteDocument",
     "RelativePath": "api/Documents/{id}",
     "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentSystemApi.Controllers.DocumentsController",
+    "Method": "ActivateDocument",
+    "RelativePath": "api/Documents/{id}/activate",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
@@ -367,7 +389,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "DocumentSystemApi.Dtos.DocumentComparisonRequestDto",
+        "Type": "DocumentSystemApi.Dtos.Document.DocumentComparisonRequestDto",
         "IsRequired": true
       }
     ],
@@ -461,7 +483,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DocumentSystemApi.Dtos.GenerateSummaryDto",
+        "Type": "DocumentSystemApi.Dtos.Summary.GenerateSummaryDto",
         "IsRequired": true
       }
     ],

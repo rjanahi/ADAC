@@ -1,5 +1,4 @@
-﻿
-using DocumentSystemApi.Dtos;
+﻿using DocumentSystemApi.Dtos.Document;
 using DocumentSystemApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,17 +12,10 @@ namespace DocumentSystemApi.Controllers;
 public class DocumentsController : ControllerBase
 {
     private readonly DocumentService _documentService;
-
-    //Service responsible for processing uploaded documents
     private readonly DocumentProcessingService _processingService;
-
-    //Service responsible for AI document classification
     private readonly DocumentClassificationService _classificationService;
-
-    //Service responsible for comparing document versions using AI
     private readonly DocumentComparisonService _comparisonService;
 
-    //Receive document services through dependency injection
     public DocumentsController(
         DocumentService documentService,
         DocumentProcessingService processingService,
@@ -46,6 +38,7 @@ public class DocumentsController : ControllerBase
         //Find the user
         string? userIdValue = User.FindFirstValue(
             ClaimTypes.NameIdentifier);
+
         //make sure they are authorized
         if (!Guid.TryParse(userIdValue, out Guid userId))
             return Unauthorized();
@@ -141,7 +134,8 @@ public class DocumentsController : ControllerBase
 
     //Return all active documents belonging to the logged-in user
     [HttpGet] //GET /api/Documents
-    public async Task<IActionResult> GetDocuments()
+    public async Task<IActionResult> GetDocuments(
+        [FromQuery] bool? isArchived)
     {
         //Read the user ID from the authentication cookie
         string? userIdValue = User.FindFirstValue(
@@ -153,7 +147,7 @@ public class DocumentsController : ControllerBase
 
         //Get the user's documents from the service
         var documents =
-            await _documentService.GetUserDocumentsAsync(userId);
+            await _documentService.GetUserDocumentsAsync(userId, isArchived);
 
         return Ok(documents);
     }
@@ -216,7 +210,6 @@ public class DocumentsController : ControllerBase
             });
         }
     }
-
 
     //Compare two uploaded document versions using AI
     [HttpPost("compare")] //GET /api/Documents/compare
@@ -297,35 +290,6 @@ public class DocumentsController : ControllerBase
                 message = "The AI comparison returned an invalid response."
             });
         }
-    }
-
-    //Soft delete a document by marking it as archived
-    [HttpDelete("{id:guid}")] //DELETE /api/Documents/{id}
-    public async Task<IActionResult> DeleteDocument(Guid id)
-    {
-        //Identify the user requesting the deletion
-        string? userIdValue = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdValue, out Guid userId))
-            return Unauthorized();
-
-        //Archive the document if it belongs to the user
-        bool archived =
-            await _documentService.ArchiveDocumentAsync(
-                id, userId);
-
-        //Return 404 if the document wasn't found or wasn't owned
-        if (!archived)
-            return NotFound(new
-            {
-                message = "Document not found."
-            });
-
-        return Ok(new
-        {
-            message = "Document archived successfully."
-        });
     }
 
     //Extract text from a document and save chunks
@@ -435,4 +399,61 @@ public class DocumentsController : ControllerBase
     }
 
 
+    //Soft delete a document by marking it as archived
+    [HttpDelete("{id:guid}")] //DELETE /api/Documents/{id}
+    public async Task<IActionResult> DeleteDocument(Guid id)
+    {
+        //Identify the user requesting the deletion
+        string? userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(userIdValue, out Guid userId))
+            return Unauthorized();
+
+        //Archive the document if it belongs to the user
+        bool archived =
+            await _documentService.ArchiveDocumentAsync(
+                id, userId);
+
+        //Return 404 if the document wasn't found or wasn't owned
+        if (!archived)
+            return NotFound(new
+            {
+                message = "Document not found."
+            });
+
+        return Ok(new
+        {
+            message = "Document archived successfully."
+        });
+    }
+
+    //Soft delete a document by marking it as archived
+    [HttpPost("{id:guid}/activate")] //POST /api/Documents/{id}/activate
+    public async Task<IActionResult> ActivateDocument(Guid id)
+    {
+        //Identify the user requesting the deletion
+        string? userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(userIdValue, out Guid userId))
+            return Unauthorized();
+
+        //Activate the document if it belongs to the user
+        bool archived =
+            await _documentService.ActivateDocumentAsync(
+                id, userId);
+
+        //Return 404 if the document wasn't found or wasn't owned
+        if (!archived)
+            return NotFound(new
+            {
+                message = "Document not found."
+            });
+
+        return Ok(new
+        {
+            message = "Document restored successfully."
+        });
+    }
 }

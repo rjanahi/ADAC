@@ -1,7 +1,0 @@
-QA Test Report - Version 1
-
-Total test cases: 20
-Passed: 15
-Failed: 5
-
-Status: Testing in progress.

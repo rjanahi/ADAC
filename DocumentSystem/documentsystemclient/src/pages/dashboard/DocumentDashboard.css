@@ -568,6 +568,17 @@
         box-shadow: none;
     }
 
+.dashboard .activate-button {
+    border-color: #bfead1;
+    background: #eafaf0;
+    color: #137b4a;
+}
+
+    .dashboard .activate-button:hover:not(:disabled) {
+        border-color: #b2f4b3;
+        background: #e9ffe6;
+        box-shadow: none;
+    }
 /* ==========================================================
    RESPONSIVE BEHAVIOR
    ========================================================== */

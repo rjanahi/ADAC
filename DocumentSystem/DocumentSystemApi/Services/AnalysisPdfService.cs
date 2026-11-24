@@ -1,5 +1,4 @@
-﻿
-using DocumentSystemApi.Data;
+﻿using DocumentSystemApi.Data;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;

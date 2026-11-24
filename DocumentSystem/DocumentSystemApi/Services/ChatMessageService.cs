@@ -1,6 +1,5 @@
-﻿
-using DocumentSystemApi.Data;
-using DocumentSystemApi.Dtos;
+﻿using DocumentSystemApi.Data;
+using DocumentSystemApi.Dtos.Chat;
 using DocumentSystemApi.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;

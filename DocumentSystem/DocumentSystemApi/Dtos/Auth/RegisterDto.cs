@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DocumentSystemApi.Dtos
+namespace DocumentSystemApi.Dtos.Auth
 {
     public class RegisterDto
     {

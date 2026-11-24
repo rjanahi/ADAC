@@ -1,5 +1,4 @@
-﻿
-namespace DocumentSystemApi.Dtos
+﻿namespace DocumentSystemApi.Dtos.Summary
 {
     //Represents a generated summary returned to React
     public class SummaryResponseDto

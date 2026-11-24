@@ -1,7 +1,7 @@
-﻿using DocumentSystemApi.Dtos;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using DocumentSystemApi.Data;
+using DocumentSystemApi.Dtos.Analysis;
 
 
 namespace DocumentSystemApi.Services
